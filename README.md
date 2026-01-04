@@ -1,42 +1,134 @@
 # PortPilot
 
-PortPilot ¬O¤@­Ó¥H `.NET 8` + `Avalonia UI` ¹ê§@ªº Windows ­ì«¬¤u¨ã¡G
-¥H¡uUSB ¸Ë¸m³s½u/Â_½u¨Æ¥ó¡v§@¬°Ä²µo¡A³z¹L DDC/CI ±N«ü©w¿Ã¹õ¤Á´«¨ì«ü©wªº¿é¤J¨Ó·½¡]VCP `0x60`).
+PortPilot æ˜¯ä¸€å€‹ä»¥ `.NET 8` + `Avalonia UI` å¯¦ä½œçš„è·¨å¹³å°è¢å¹•è¨Šè™Ÿåˆ‡æ›å·¥å…·ã€‚
+é€éç›£è½ USB è£ç½®é€£ç·š/æ–·ç·šäº‹ä»¶ä½œç‚ºè§¸ç™¼ï¼Œé€é DDC/CI å”å®šè‡ªå‹•åˆ‡æ›è¢å¹•çš„è¼¸å…¥è¨Šè™Ÿæº (VCP `0x60`)ã€‚
 
-¨å«¬¥Î³~¡G·f°t USB Switch / KVM¡A¦b¤Á¨ì¥t¤@¥x¹q¸£®É¦Û°Ê§â¿Ã¹õ°T¸¹¤Á¨ì¥t¤@­Ó¿é¤J¡C
+å…¸å‹æ‡‰ç”¨å ´æ™¯ï¼šæ­é… USB Switch / KVMï¼Œåœ¨åˆ‡æ›ä¸åŒé›»è…¦æ™‚è‡ªå‹•è®“è¢å¹•è¨Šè™Ÿè·Ÿè‘—åˆ‡æ›åˆ°å°æ‡‰çš„è¼¸å…¥æºã€‚
 
-## ¥\¯à
+## åŠŸèƒ½
 
-- ºÊÅ¥ USB ¸Ë¸m´¡¤J/©Ş°£¨Æ¥ó¡]¥H VID/PID °t¹ï¡^
-- ³W«h¤ä´©Âù¦V°Ê§@¡G
-  - ¸Ë¸m **Connected (Added)** ®É¤Á´«¨ì¿é¤J A
-  - ¸Ë¸m **Disconnected (Removed)** ®É¤Á´«¨ì¿é¤J B
-- ¤ä´©¿ï¾Ü­n±±¨îªº¿Ã¹õ¡]DDC/CI¡^
-- Input Source ¥H¹w³]²M³æ¿ï¾Ü¡]²¾°£¤â°Ê¿é¤J¡^
-- USB ¥Ø¼Ğ²M³æ±Ä¡usafe list¡v¡G¹w³]¥uÅã¥Ü `USB\...` ¥B¨ã VID/PID ªº¸Ë¸m¡A­°§C»~¿ï HID/SWD ¸Ë¸mªº¾÷²v
-- `Debug mode` ¶}Ãö¡G
-  - ¶}±Ò®É¤~Åã¥Ü raw USB events »P Debug log
-  - Debug log ¥i½Æ»s»P¥t¦sÀÉ¡]`debug-log.txt`¡A»P `config.json` ¦P¸ê®Æ§¨¡^
+- ç›£è½ USB è£ç½®æ’å…¥/ç§»é™¤äº‹ä»¶ (ä¾æ“š VID/PID åˆ¤æ–·)
+- é›™å‘è§¸ç™¼å‹•ä½œï¼š
+  - è£ç½® **Connected (Added)** æ™‚åˆ‡æ›è‡³è¼¸å…¥æº A
+  - è£ç½® **Disconnected (Removed)** æ™‚åˆ‡æ›è‡³è¼¸å…¥æº B
+- æ”¯æ´åµæ¸¬æ”¯æ´ DDC/CI çš„è¢å¹•
+- Input Source è‡ªå®šç¾© (æä¾›å¸¸è¦‹é è¨­å€¼)
+- USB ç›®æ¨™éæ¿¾ (Safe list)ï¼šåƒ…ç›£è½ç‰¹å®š VID/PID çš„è£ç½®
+- `Debug mode` é–‹é—œï¼š
+  - é–‹å•Ÿæ™‚æ‰è¨˜éŒ„ raw USB events èˆ‡ Debug log
+  - Debug log å¯å„²å­˜è‡³æª”æ¡ˆ (`debug-log.txt`)
 
-## ¥­¥x / ­­¨î
+## å¹³å°æ”¯æ´ / éœ€æ±‚
 
-- ¥Ø«e¥D­n°w¹ï Windows¡]¨Ï¥Î `dxva2.dll` ¶i¦æ DDC/CI ±±¨î¡B¨Ï¥Î WMI ºÊÅ¥ USB ¨Æ¥ó¡^
-- »İ­n¿Ã¹õ¤ä´© DDC/CI ¨Ã¦b¿Ã¹õ OSD ³]©w¤¤±Ò¥Î¡]­Y¥¼±Ò¥Î¡A¥i¯àµLªk¤Á´«¿é¤J·½¡^
+### Windows
+- ä½¿ç”¨ `dxva2.dll` é€²è¡Œ DDC/CI é€šè¨Š
+- ä½¿ç”¨ WMI ç›£è½ USB äº‹ä»¶
+- éœ€ç¢ºèªè¢å¹•æ”¯æ´ DDC/CI ä¸¦åœ¨è¢å¹• OSD è¨­å®šä¸­é–‹å•Ÿ
 
-## ¨Ï¥Î¤è¦¡¡]°ò¥»¬yµ{¡^
+### Linux
+- ä½¿ç”¨ `ddcutil` é€²è¡Œ DDC/CI é€šè¨Š
+- ä½¿ç”¨ `udevadm` ç›£è½ USB äº‹ä»¶
+- **ç³»çµ±éœ€æ±‚**ï¼šéœ€å®‰è£ `ddcutil` ä¸¦è¨­å®šæ¬Šé™ (è©³è¦‹ä¸‹æ–¹ Linux è¨­å®šæŒ‡å—)
 
-1. ±Ò°Êµ{¦¡«á¡A¥ı¦b `Monitor` ¤U©Ô¿ï³æ¿ï¾Ü­n±±¨îªº¿Ã¹õ
-2. ¦b `When device CONNECTED (Added) switch to` ¿ï¾Ü¸Ë¸m³s½u®É­n¤Á´«ªº¿é¤J
-3. ¦b `When device DISCONNECTED (Removed) switch to` ¿ï¾Ü¸Ë¸mÂ_½u®É­n¤Á´«ªº¿é¤J
-4. ¦b `USB targets (safe list)` ¤¤¡A¿ï¾Ü­nºÊ±±ªº USB ¸Ë¸m¡]¨Ò¦p USB switch / hub¡^
-5. «ö `Add/Update rule` «Ø¥ß©Î§ó·s³W«h
-6. «ö `Save`¡]©Î¥Ñ `Add/Update rule` ¦Û°Ê¦s¡^
+## Linux è¨­å®šæŒ‡å— (å… Sudo)
 
-## ³]©wÀÉ
+åœ¨ Linux ç³»çµ±ä¸­ï¼Œæ§åˆ¶é¡¯ç¤ºå™¨ï¼ˆé€é DDC/CI å”å®šï¼‰éœ€è¦è®€å¯« `/dev/i2c-*` è£ç½®ã€‚ç‚ºäº†å®‰å…¨æ€§ï¼Œé€™äº›è£ç½®é è¨­åƒ…é™ Root å­˜å–ã€‚æœ¬æŒ‡å—å°‡å¼•å°ä½ å®Œæˆç’°å¢ƒè¨­å®šï¼Œè®“ PortPilot è»Ÿé«”èƒ½åœ¨ä¸€èˆ¬ä½¿ç”¨è€…æ¬Šé™ä¸‹åŸ·è¡Œã€‚
 
-³]©wÀÉ¬° JSON¡A·|¥Ñµ{¦¡¦Û°Ê¦s¨ú¡]¸ô®|·|Åã¥Ü¦b Status¡^¡C
+### 1. å®‰è£å¿…è¦å¥—ä»¶
 
-¥Ø«e³W«h®æ¦¡¡]¸`¿ı¡^¡G
+åœ¨ Fedora / RHEL ç³»çµ±ä¸Šï¼Œè«‹åŸ·è¡Œï¼š
+
+```bash
+sudo dnf install ddcutil i2c-tools
+```
+
+åœ¨ Debian / Ubuntu ç³»çµ±ä¸Šï¼š
+
+```bash
+sudo apt install ddcutil i2c-tools
+```
+
+### 2. è¼‰å…¥ I2C æ ¸å¿ƒæ¨¡çµ„
+
+DDC/CI é€šè¨Šä¾è³´ `i2c-dev` æ ¸å¿ƒæ¨¡çµ„ã€‚
+
+ç«‹å³è¼‰å…¥ï¼š
+
+```bash
+sudo modprobe i2c-dev
+```
+
+è¨­å®šé–‹æ©Ÿè‡ªå‹•è¼‰å…¥ï¼š
+
+```bash
+echo "i2c-dev" | sudo tee /etc/modules-load.d/i2c.conf
+```
+
+### 3. è¨­å®šä½¿ç”¨è€…ç¾¤çµ„èˆ‡æ¬Šé™
+
+Fedora ç­‰ç™¼è¡Œç‰ˆé è¨­å¯èƒ½ä¸æœƒå»ºç«‹ `i2c` ç¾¤çµ„ï¼Œæˆ‘å€‘éœ€è¦æ‰‹å‹•å»ºç«‹ä¸¦å°‡ç›®å‰ä½¿ç”¨è€…åŠ å…¥ã€‚
+
+å»ºç«‹ç¾¤çµ„ä¸¦åŠ å…¥ä½¿ç”¨è€…ï¼š
+
+```bash
+# å»ºç«‹ç³»çµ±ç¾¤çµ„ i2c
+sudo groupadd --system i2c
+
+# å°‡ç›®å‰ä½¿ç”¨è€… ($USER) åŠ å…¥ i2c ç¾¤çµ„
+sudo usermod -aG i2c $USER
+```
+
+### 4. è¨­å®š udev è¦å‰‡ (é—œéµæ­¥é©Ÿ)
+
+å»ºç«‹ä¸€å€‹è‡ªå®šç¾©è¦å‰‡ï¼Œè®“ç³»çµ±åœ¨ç™¼ç¾ I2C è£ç½®æ™‚ï¼Œè‡ªå‹•å°‡æ¬Šé™åˆ†é…çµ¦ `i2c` ç¾¤çµ„ã€‚
+
+å»ºç«‹è¦å‰‡æª”æ¡ˆï¼š
+
+```bash
+sudo nano /etc/udev/rules.d/45-ddcutil-i2c.rules
+```
+
+åœ¨æª”æ¡ˆä¸­è²¼å…¥ä»¥ä¸‹å…§å®¹ï¼š
+
+```
+# è®“ i2c ç¾¤çµ„çš„ä½¿ç”¨è€…å¯ä»¥è®€å¯« i2c è£ç½®
+KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"
+```
+
+å¥—ç”¨è¦å‰‡ï¼š
+
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+### 5. å¥—ç”¨è®Šæ›´èˆ‡é©—è­‰
+
+**é‡è¦ï¼šé‡æ–°ç™»å…¥**
+
+ä½¿ç”¨è€…ç¾¤çµ„çš„è®Šæ›´ï¼ˆusermodï¼‰éœ€è¦ç™»å‡ºä¸¦é‡æ–°ç™»å…¥ï¼ˆæˆ–é‡å•Ÿé›»è…¦ï¼‰å¾Œæ‰æœƒç”Ÿæ•ˆã€‚
+
+é©—è­‰æ­¥é©Ÿï¼š
+
+1. æª¢æŸ¥ç¾¤çµ„ï¼šè¼¸å…¥ `groups`ï¼Œç¢ºèªæ¸…å–®ä¸­åŒ…å« `i2c`ã€‚
+2. ç„¡ Sudo æ¸¬è©¦ï¼šåŸ·è¡Œä»¥ä¸‹æŒ‡ä»¤ï¼Œè‹¥èƒ½çœ‹åˆ°è¢å¹•è³‡è¨Šä¸”ç„¡æ¬Šé™éŒ¯èª¤å³æˆåŠŸã€‚
+
+```bash
+ddcutil detect
+```
+
+## ä½¿ç”¨æ–¹å¼
+
+1. å•Ÿå‹•ç¨‹å¼ï¼Œåœ¨ `Monitor` ä¸‹æ‹‰é¸å–®é¸æ“‡è¦æ§åˆ¶çš„è¢å¹•
+2. åœ¨ `When device CONNECTED (Added) switch to` è¨­å®šè£ç½®é€£ç·šæ™‚è¦åˆ‡æ›çš„è¼¸å…¥æº
+3. åœ¨ `When device DISCONNECTED (Removed) switch to` è¨­å®šè£ç½®æ–·ç·šæ™‚è¦åˆ‡æ›çš„è¼¸å…¥æº
+4. åœ¨ `USB targets (safe list)` å€å¡Šï¼Œé¸æ“‡è¦ç›£è½çš„ USB è£ç½® (ä¾‹å¦‚ USB switch / hub)
+5. æŒ‰ `Add/Update rule` å»ºç«‹æˆ–æ›´æ–°è¦å‰‡
+6. æŒ‰ `Save` (æˆ–ç”± `Add/Update rule` è‡ªå‹•å„²å­˜)
+
+## è¨­å®šæª”
+
+è¨­å®šæª”ç‚º JSON æ ¼å¼ï¼Œç¨‹å¼æœƒè‡ªå‹•å„²å­˜ã€‚
 
 ```json
 {
@@ -45,7 +137,7 @@ PortPilot ¬O¤@­Ó¥H `.NET 8` + `Avalonia UI` ¹ê§@ªº Windows ­ì«¬¤u¨ã¡G
       "vid": "0BDA",
       "pid": "0411",
       "onAdded": {
-        "monitorId": "10001:0",
+        "monitorId": "10001:0", // Windows format
         "inputSource": 15
       },
       "onRemoved": {
@@ -59,11 +151,13 @@ PortPilot ¬O¤@­Ó¥H `.NET 8` + `Avalonia UI` ¹ê§@ªº Windows ­ì«¬¤u¨ã¡G
 }
 ```
 
-> `monitorId` ¨Ï¥ÎÃ­©w®æ¦¡ `"<HMONITOR_HEX>:<index>"`¡]¨Ò¦p `"10001:0"`¡^¡AÁ×§K¨Ï¥Î physical handle ¾É­P `Id="0"` ªº°İÃD¡C
+> **æ³¨æ„**ï¼š
+> - Windows `monitorId` æ ¼å¼ç¯„ä¾‹ï¼š`"10001:0"` (HMONITOR:Index)
+> - Linux `monitorId` æ ¼å¼ç¯„ä¾‹ï¼š`"1"` (I2C Bus Number)
 
-## ¿é¤J¨Ó·½¥N½X°Ñ¦Ò¡]VCP Code 0x60¡^
+## è¼¸å…¥è¨Šè™Ÿä»£ç¢¼åƒè€ƒ (VCP Code 0x60)
 
-| ¥N½X (Hex) | Åã¥Ü |
+| ä»£ç¢¼ (Hex) | æ„ç¾© |
 | :-- | :-- |
 | 0x0F | DisplayPort 1 |
 | 0x10 | DisplayPort 2 |
@@ -71,46 +165,42 @@ PortPilot ¬O¤@­Ó¥H `.NET 8` + `Avalonia UI` ¹ê§@ªº Windows ­ì«¬¤u¨ã¡G
 | 0x12 | HDMI 2 |
 | 0x01 | D-Sub (VGA) |
 
-## ±M®×µ²ºc¡]¹ê»Ú²{ªp¡^
+## å°ˆæ¡ˆçµæ§‹
 
 ```
 PortPilot-Project/
-¢u¢w¢w PortPilot-Project.csproj
-¢u¢w¢w README.md
-¢u¢w¢w Abstractions/
-¢x   ¢u¢w¢w IMonitorController.cs
-¢x   ¢u¢w¢w IUsbWatcher.cs
-¢x   ¢|¢w¢w Models.cs
-¢u¢w¢w Config/
-¢x   ¢u¢w¢w AppConfig.cs
-¢x   ¢|¢w¢w ConfigStore.cs
-¢u¢w¢w Models/
-¢x   ¢|¢w¢w InputSourceOption.cs
-¢u¢w¢w ViewModels/
-¢x   ¢u¢w¢w MainWindowViewModel.cs
-¢x   ¢|¢w¢w RuleDisplayItem.cs
-¢u¢w¢w Views/
-¢x   ¢u¢w¢w MainWindow.axaml
-¢x   ¢|¢w¢w MainWindow.axaml.cs
-¢|¢w¢w Windows/
-    ¢u¢w¢w WinMonitorController.cs
-    ¢|¢w¢w WinUsbWatcher.cs
+â”œâ”€â”€ PortPilot-Project.csproj
+â”œâ”€â”€ README.md
+â”œâ”€â”€ Abstractions/
+â”‚   â”œâ”€â”€ IMonitorController.cs
+â”‚   â”œâ”€â”€ IUsbWatcher.cs
+â”‚   â””â”€â”€ Models.cs
+â”œâ”€â”€ Config/
+â”‚   â”œâ”€â”€ AppConfig.cs
+â”‚   â””â”€â”€ ConfigStore.cs
+â”œâ”€â”€ Models/
+â”‚   â””â”€â”€ InputSourceOption.cs
+â”œâ”€â”€ ViewModels/
+â”‚   â”œâ”€â”€ MainWindowViewModel.cs
+â”‚   â””â”€â”€ RuleDisplayItem.cs
+â”œâ”€â”€ Views/
+â”‚   â”œâ”€â”€ MainWindow.axaml
+â”‚   â””â”€â”€ MainWindow.axaml.cs
+â”œâ”€â”€ Windows/
+â”‚   â”œâ”€â”€ WinMonitorController.cs
+â”‚   â””â”€â”€ WinUsbWatcher.cs
+â””â”€â”€ Linux/
+    â”œâ”€â”€ LinuxMonitorController.cs
+    â””â”€â”€ LinuxUsbWatcher.cs
 ```
 
-## ¹ê§@·§Äı
+## å¯¦ä½œç´°ç¯€
 
-- `Windows/WinUsbWatcher.cs`
-  - ³z¹L WMI ºÊÅ¥¸Ë¸m«Ø¥ß/²¾°£¨Æ¥ó
-  - ¥Ñ `DeviceID` ¸ÑªR VID/PID¡]¨Ò¦p `USB\VID_046D&PID_0AB5\...`¡^
-- `Windows/WinMonitorController.cs`
-  - `EnumDisplayMonitors` + `GetPhysicalMonitorsFromHMONITOR` ¨ú±o¥i¥Î¿Ã¹õ
-  - ¥H VCP `0x60` ©I¥s `SetVCPFeature` ¤Á´«¿é¤J·½
-- `ViewModels/MainWindowViewModel.cs`
-  - ºŞ²z UI ª¬ºA¡B³W«h½s¿è¡B¸ü¤J/Àx¦s³]©w
-  - USB Ä²µo®É¨Ì `Added/Removed` °õ¦æ¹ïÀ³°Ê§@
-
-## «áÄò¥i¯à§ï¶i
-
-- ¹ï USB ¨Æ¥ó¥[¤J§ó²Ó½oªº¹LÂo/¥h§İµ¦²¤¡]¨Ì¤£¦P¸Ë¸mªºªTÁ|¯S©Ê½Õ¾ã¡^
-- ¤ä´© Linux/macOS¡]¥Ø«e¶È³]­p¤W«O¯d¤¶­±¤À¼h¡^
-- ¼W¥[¨t²Î§X / ¦Û±Òµ¥¾ã¦X¥\¯à
+- **Windows**:
+  - `WinUsbWatcher`: ä½¿ç”¨ WMI ç›£è½ `Win32_PnPEntity` äº‹ä»¶ã€‚
+  - `WinMonitorController`: ä½¿ç”¨ Win32 API (`dxva2.dll`) æ§åˆ¶è¢å¹•ã€‚
+- **Linux**:
+  - `LinuxUsbWatcher`: ä½¿ç”¨ `udevadm monitor` ç›£è½ USB äº‹ä»¶ï¼Œä¸¦å¿«å–è£ç½®ç‹€æ…‹ä»¥è™•ç†ç§»é™¤äº‹ä»¶ã€‚
+  - `LinuxMonitorController`: å°è£ `ddcutil` æŒ‡ä»¤ä¾†åµæ¸¬è¢å¹•èˆ‡è¨­å®š VCPã€‚
+- **å…±ç”¨é‚è¼¯**:
+  - `MainWindowViewModel`: è² è²¬ UI é‚è¼¯ã€è¦å‰‡ç®¡ç†èˆ‡è·¨å¹³å°ä»‹é¢çš„ä¾è³´æ³¨å…¥ã€‚

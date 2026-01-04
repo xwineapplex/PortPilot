@@ -10,6 +10,7 @@ using PortPilot_Project.Abstractions;
 using PortPilot_Project.Config;
 using PortPilot_Project.Models;
 using PortPilot_Project.Windows;
+using PortPilot_Project.Linux;
 
 namespace PortPilot_Project.ViewModels;
 
@@ -104,8 +105,22 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
-        _monitorController = OperatingSystem.IsWindows() ? new WinMonitorController() : new NullMonitorController();
-        _usbWatcher = OperatingSystem.IsWindows() ? new WinUsbWatcher() : new NullUsbWatcher();
+        if (OperatingSystem.IsWindows())
+        {
+            _monitorController = new WinMonitorController();
+            _usbWatcher = new WinUsbWatcher();
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            _monitorController = new LinuxMonitorController();
+            _usbWatcher = new LinuxUsbWatcher();
+        }
+        else
+        {
+            _monitorController = new NullMonitorController();
+            _usbWatcher = new NullUsbWatcher();
+        }
+
         _configStore = new ConfigStore();
 
         Log("VM constructed");
