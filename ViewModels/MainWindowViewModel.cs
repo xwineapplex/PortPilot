@@ -132,6 +132,22 @@ public partial class MainWindowViewModel : ViewModelBase
         Log("InitializeAsync start");
          await LoadConfigAsync();
 
+         try
+         {
+             var initialDevices = _usbWatcher.GetConnectedDevices();
+             foreach (var device in initialDevices)
+             {
+                 if (IsDebugMode)
+                     RecentUsbEvents.Insert(0, device);
+                 DiffUpdateUsbTargets(device);
+             }
+             Log($"Initial scan found {initialDevices.Count} devices");
+         }
+         catch (Exception ex)
+         {
+             Log($"Initial USB scan failed: {ex}");
+         }
+
          _usbWatcher.DeviceChanged += (_, e) =>
          {
              // WMI events come from a non-UI thread.
@@ -540,6 +556,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         public void Start() { }
         public void Stop() { }
+        public List<UsbDeviceInfo> GetConnectedDevices() => new();
         public void Dispose() { }
     }
 }

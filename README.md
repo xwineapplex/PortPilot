@@ -200,7 +200,7 @@ PortPilot-Project/
   - `WinUsbWatcher`: 使用 WMI 監聽 `Win32_PnPEntity` 事件。
   - `WinMonitorController`: 使用 Win32 API (`dxva2.dll`) 控制螢幕。
 - **Linux**:
-  - `LinuxUsbWatcher`: 使用 `udevadm monitor` 監聽 USB 事件，並快取裝置狀態以處理移除事件。
+  - `LinuxUsbWatcher`: 使用 `udevadm info` 進行初始掃描，並搭配 `udevadm monitor` 監聽 USB 插拔事件，確保裝置路徑一致性。
   - `LinuxMonitorController`: 封裝 `ddcutil` 指令來偵測螢幕與設定 VCP。
 - **共用邏輯**:
   - `MainWindowViewModel`: 負責 UI 邏輯、規則管理與跨平台介面的依賴注入。

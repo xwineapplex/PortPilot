@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Management;
 using System.Text.RegularExpressions;
+using System.Runtime.Versioning;
 using PortPilot_Project.Abstractions;
 
 namespace PortPilot_Project.Windows;
 
+[SupportedOSPlatform("windows")]
 public sealed class WinUsbWatcher : IUsbWatcher
 {
     private ManagementEventWatcher? _creationWatcher;
@@ -33,6 +36,33 @@ public sealed class WinUsbWatcher : IUsbWatcher
         _deletionWatcher.Start();
 
         _started = true;
+    }
+
+    public List<UsbDeviceInfo> GetConnectedDevices()
+    {
+        var devices = new List<UsbDeviceInfo>();
+        if (!OperatingSystem.IsWindows()) return devices;
+
+        try
+        {
+            using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity WHERE DeviceID LIKE 'USB%'");
+            foreach (var device in searcher.Get())
+            {
+                var deviceId = device["DeviceID"]?.ToString() ?? string.Empty;
+                var name = device["Name"]?.ToString();
+                var (vid, pid) = ParseVidPid(deviceId);
+
+                if (vid != null && pid != null)
+                {
+                    devices.Add(new UsbDeviceInfo(deviceId, name, vid, pid));
+                }
+            }
+        }
+        catch
+        {
+            // Swallow exceptions
+        }
+        return devices;
     }
 
     public void Stop()

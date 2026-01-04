@@ -22,8 +22,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-		<IsTrimmable>true</IsTrimmable>
-		<PublishTrimmed>true</PublishTrimmed>
+		<IsTrimmable>false</IsTrimmable>
+		<PublishTrimmed>false</PublishTrimmed>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -41,6 +41,6 @@
 		</PackageReference>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
 
-		<PackageReference Include="System.Management" Version="8.0.0" Condition="'$(OS)' == 'Windows_NT'" />
+		<PackageReference Include="System.Management" Version="8.0.0" />
 	</ItemGroup>
 </Project>
