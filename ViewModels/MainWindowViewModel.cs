@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -224,7 +225,6 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedInputSourceOption = InputSourceOptions.FirstOrDefault(o => o.Code == value) ?? SelectedInputSourceOption;
     }
 
-    [RelayCommand]
     private async Task LoadConfigAsync()
     {
         try
@@ -272,7 +272,6 @@ public partial class MainWindowViewModel : ViewModelBase
             ?? $"0x{code.Value:X2}";
     }
 
-    [RelayCommand]
     private async Task SaveConfigAsync()
     {
         try
@@ -366,6 +365,57 @@ public partial class MainWindowViewModel : ViewModelBase
      }
 
     private bool CanAddRuleFromSelection() => SelectedUsbDevice is not null && SelectedMonitor is not null;
+
+    [RelayCommand]
+    private async Task DeleteRuleAsync(UsbTriggerRule rule)
+    {
+        if (Rules.Remove(rule))
+        {
+            OnPropertyChanged(nameof(RulesDisplay));
+            await SaveConfigAsync();
+            Status = $"Rule deleted: VID:{rule.Vid} PID:{rule.Pid}";
+            Log($"Rule deleted: VID={rule.Vid} PID={rule.Pid}");
+        }
+    }
+
+    [RelayCommand]
+    private void OpenConfigFolder()
+    {
+        try
+        {
+            var dir = System.IO.Path.GetDirectoryName(_configStore.ConfigPath);
+            if (string.IsNullOrWhiteSpace(dir))
+            {
+                Status = "Config directory path is invalid.";
+                return;
+            }
+
+            if (!System.IO.Directory.Exists(dir))
+            {
+                Status = "Config directory does not exist yet (save a rule first).";
+                return;
+            }
+
+            if (OperatingSystem.IsWindows())
+            {
+                Process.Start("explorer.exe", dir);
+            }
+            else if (OperatingSystem.IsLinux())
+            {
+                Process.Start("xdg-open", dir);
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                Process.Start("open", dir);
+            }
+            
+            Status = $"Opened: {dir}";
+        }
+        catch (Exception ex)
+        {
+            Status = $"Failed to open folder: {ex.Message}";
+        }
+    }
 
     [RelayCommand]
     private async Task RefreshMonitorsAsync()
