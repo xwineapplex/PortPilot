@@ -32,6 +32,24 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool isDebugMode;
 
+    // Replace the monitoring flag ObservableProperty + partial hook with an explicit property.
+
+    private bool _isMonitoringEnabled;
+    public bool IsMonitoringEnabled
+    {
+        get => _isMonitoringEnabled;
+        set
+        {
+            if (SetProperty(ref _isMonitoringEnabled, value))
+            {
+                _ = Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    await SetMonitoringEnabledAsync(value);
+                });
+            }
+        }
+    }
+
     public ObservableCollection<string> DebugLog { get; } = new();
 
     public string DebugLogText => GetDebugLogText();
@@ -131,98 +149,127 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task InitializeAsync()
     {
         Log("InitializeAsync start");
-         await LoadConfigAsync();
+        await LoadConfigAsync();
 
-         try
-         {
-             var initialDevices = _usbWatcher.GetConnectedDevices();
-             foreach (var device in initialDevices)
-             {
-                 if (IsDebugMode)
-                     RecentUsbEvents.Insert(0, device);
-                 DiffUpdateUsbTargets(device);
-             }
-             Log($"Initial scan found {initialDevices.Count} devices");
-         }
-         catch (Exception ex)
-         {
-             Log($"Initial USB scan failed: {ex}");
-         }
+        _usbWatcher.DeviceChanged += (_, e) =>
+        {
+            // Hard reject: when monitoring is disabled, ignore any late/racing events.
+            if (!IsMonitoringEnabled)
+                return;
 
-         _usbWatcher.DeviceChanged += (_, e) =>
-         {
-             // WMI events come from a non-UI thread.
-             Dispatcher.UIThread.Post(async () =>
-             {
-                 Log($"USB {e.ChangeType} Name='{e.Device.Name}' Vid={e.Device.Vid ?? "null"} Pid={e.Device.Pid ?? "null"}");
-                 Log($"USB DeviceId='{e.Device.DeviceId}'");
+            // WMI events come from a non-UI thread.
+            Dispatcher.UIThread.Post(async () =>
+            {
+                // Double-check after marshaling to UI thread.
+                if (!IsMonitoringEnabled)
+                    return;
 
-                 // Only keep the raw event list in debug mode.
-                 if (IsDebugMode)
-                     RecentUsbEvents.Insert(0, e.Device);
+                Log($"USB {e.ChangeType} Name='{e.Device.Name}' Vid={e.Device.Vid ?? "null"} Pid={e.Device.Pid ?? "null"}");
+                Log($"USB DeviceId='{e.Device.DeviceId}'");
 
-                 // Update targets immediately (no debounce).
-                 DiffUpdateUsbTargets(e.Device);
+                // Only keep the raw event list in debug mode.
+                if (IsDebugMode)
+                    RecentUsbEvents.Insert(0, e.Device);
 
-                 Status = $"USB {e.ChangeType}: {e.Device.Name ?? e.Device.DeviceId}";
+                // Update targets immediately (no debounce).
+                DiffUpdateUsbTargets(e.Device);
 
-                 await ApplyRulesAsync(e.ChangeType, e.Device);
-             });
-         };
+                Status = $"USB {e.ChangeType}: {e.Device.Name ?? e.Device.DeviceId}";
 
-         try
-         {
-             _usbWatcher.Start();
-            Log("USB watcher started");
-         }
-         catch (Exception ex)
-         {
-             Status = ex.Message;
-            Log($"USB watcher start failed: {ex}");
-         }
+                await ApplyRulesAsync(e.ChangeType, e.Device);
+            });
+        };
 
-         await RefreshMonitorsAsync();
+        await RefreshMonitorsAsync();
 
-         // Ensure we have usable defaults before any rule creation.
-         if (SelectedMonitor is null && Monitors.Count > 0)
-             SelectedMonitor = Monitors[0];
-         if (InputSource == 0)
-             InputSource = InputSourceOptions.FirstOrDefault()?.Code ?? (ushort)0x0F;
+        // Ensure we have usable defaults before any rule creation.
+        if (SelectedMonitor is null && Monitors.Count > 0)
+            SelectedMonitor = Monitors[0];
+        if (InputSource == 0)
+            InputSource = InputSourceOptions.FirstOrDefault()?.Code ?? (ushort)0x0F;
 
-         // Restore last UI selections.
-         if (!string.IsNullOrWhiteSpace(_config.LastSelectedMonitorId))
-             SelectedMonitor = Monitors.FirstOrDefault(m => string.Equals(m.Id, _config.LastSelectedMonitorId, StringComparison.OrdinalIgnoreCase));
-         if (_config.LastInputSource is ushort last)
-             InputSource = last;
+        // Restore last UI selections.
+        if (!string.IsNullOrWhiteSpace(_config.LastSelectedMonitorId))
+            SelectedMonitor = Monitors.FirstOrDefault(m => string.Equals(m.Id, _config.LastSelectedMonitorId, StringComparison.OrdinalIgnoreCase));
+        if (_config.LastInputSource is ushort last)
+            InputSource = last;
 
-         SelectedInputSourceOption = InputSourceOptions.FirstOrDefault(o => o.Code == InputSource) ?? InputSourceOptions.FirstOrDefault();
+        SelectedInputSourceOption = InputSourceOptions.FirstOrDefault(o => o.Code == InputSource) ?? InputSourceOptions.FirstOrDefault();
         OnAddedInputSourceOption = SelectedInputSourceOption;
         OnRemovedInputSourceOption = InputSourceOptions.FirstOrDefault(o => o.Code != (OnAddedInputSourceOption?.Code ?? InputSource))
                                    ?? InputSourceOptions.Skip(1).FirstOrDefault()
                                    ?? InputSourceOptions.FirstOrDefault();
 
+        // Apply persisted monitoring state last (after config load).
+        IsMonitoringEnabled = _config.MonitoringEnabled;
+
         Log($"InitializeAsync done: Monitors={Monitors.Count}, SelectedMonitorId='{SelectedMonitor?.Id ?? "null"}', InputSource=0x{InputSource:X2}");
-     }
-
-    partial void OnOnAddedInputSourceOptionChanged(InputSourceOption? value)
-    {
-        if (value is null)
-            return;
-
-        // Keep the main InputSource in sync with the 'Added' action for convenience.
-        InputSource = value.Code;
     }
 
-    partial void OnSelectedInputSourceOptionChanged(InputSourceOption? value)
+    private async Task SetMonitoringEnabledAsync(bool enabled)
     {
-        if (value is null)
-            return;
-        InputSource = value.Code;
-    }
+        if (enabled)
+        {
+            try
+            {
+                // Reset / restart semantics.
+                _usbWatcher.Stop();
 
-    partial void OnInputSourceChanged(ushort value)
-    {
-        SelectedInputSourceOption = InputSourceOptions.FirstOrDefault(o => o.Code == value) ?? SelectedInputSourceOption;
+                // Reset history then repopulate from a single scan (for UI list correction only).
+                _recentUsbForTargets.Clear();
+
+                // Also rebuild the UI list from scratch to reflect the scan.
+                UsbTargets.Clear();
+
+                try
+                {
+                    var initialDevices = _usbWatcher.GetConnectedDevices();
+                    foreach (var device in initialDevices)
+                    {
+                        if (IsDebugMode)
+                            RecentUsbEvents.Insert(0, device);
+                        DiffUpdateUsbTargets(device);
+                    }
+                    Log($"Enable scan found {initialDevices.Count} devices");
+                }
+                catch (Exception ex)
+                {
+                    Log($"Enable scan failed: {ex}");
+                }
+
+                _usbWatcher.Start();
+                Status = "監控服務已啟動";
+                Log("USB watcher started (enabled)");
+            }
+            catch (Exception ex)
+            {
+                Status = ex.Message;
+                Log($"USB watcher start failed: {ex}");
+
+                // Revert UI state on failure.
+                if (IsMonitoringEnabled)
+                    IsMonitoringEnabled = false;
+            }
+        }
+        else
+        {
+            try
+            {
+                // Start -> Stop semantics (Stop is idempotent).
+                _usbWatcher.Stop();
+                Status = "監控服務已停止";
+                Log("USB watcher stopped (disabled)");
+            }
+            catch (Exception ex)
+            {
+                Status = ex.Message;
+                Log($"USB watcher stop failed: {ex}");
+            }
+        }
+
+        // Persist immediately, but keep Status as the service state.
+        _config.MonitoringEnabled = enabled;
+        await SaveConfigAsync(updateStatus: false);
     }
 
     private async Task LoadConfigAsync()
@@ -272,26 +319,29 @@ public partial class MainWindowViewModel : ViewModelBase
             ?? $"0x{code.Value:X2}";
     }
 
-    private async Task SaveConfigAsync()
+    private async Task SaveConfigAsync(bool updateStatus = true)
     {
         try
         {
             Log($"SaveConfig: SelectedMonitorId='{SelectedMonitor?.Id ?? "null"}', InputSource=0x{InputSource:X2}, Rules={Rules.Count}");
-             _config.Rules = Rules.ToList();
-             if (SelectedMonitor is not null && !string.IsNullOrWhiteSpace(SelectedMonitor.Id))
-                 _config.LastSelectedMonitorId = SelectedMonitor.Id;
-             if (InputSource != 0)
-                 _config.LastInputSource = InputSource;
+            _config.Rules = Rules.ToList();
+            if (SelectedMonitor is not null && !string.IsNullOrWhiteSpace(SelectedMonitor.Id))
+                _config.LastSelectedMonitorId = SelectedMonitor.Id;
+            if (InputSource != 0)
+                _config.LastInputSource = InputSource;
             await _configStore.SaveAsync(_config);
-            Status = $"Saved: {_configStore.ConfigPath}";
-             Log("SaveConfig: done");
-         }
-         catch (Exception ex)
-         {
+
+            if (updateStatus)
+                Status = $"Saved: {_configStore.ConfigPath}";
+
+            Log("SaveConfig: done");
+        }
+        catch (Exception ex)
+        {
             Status = ex.Message;
-             Log($"SaveConfig failed: {ex}");
-         }
-     }
+            Log($"SaveConfig failed: {ex}");
+        }
+    }
 
     [RelayCommand(CanExecute = nameof(CanAddRuleFromSelection))]
     private async Task AddRuleFromSelectionAsync()
@@ -307,7 +357,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(SelectedMonitor.Id))
         {
             Status = "No valid monitor selected (DDC/CI monitor not detected).";
-            Log($"AddRule aborted: invalid monitor id '{SelectedMonitor.Id}'");
+            Log($"AddRule aborted: invalid monitor id ''{SelectedMonitor.Id}''");
             return;
         }
 
@@ -432,7 +482,7 @@ public partial class MainWindowViewModel : ViewModelBase
              OnPropertyChanged(nameof(RulesDisplay));
              Log($"RefreshMonitors: {Monitors.Count} monitor(s)");
              if (Monitors.Count > 0)
-                 Log($"First monitor: Id='{Monitors[0].Id}', Name='{Monitors[0].Name}'");
+                 Log($"First monitor: Id=''Monitors[0].Id'', Name=''Monitors[0].Name''");
          }
          catch (Exception ex)
          {

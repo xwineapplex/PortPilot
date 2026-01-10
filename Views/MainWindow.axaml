@@ -150,8 +150,8 @@
 
                     <!-- Bottom Functional Area -->
                     <StackPanel Grid.Row="1" Margin="0,12,0,0">
-                         <CheckBox Content="啟用監控服務" IsChecked="True" IsEnabled="False"/>
-                    </StackPanel>
+     <CheckBox Content="啟用監控服務" IsChecked="{Binding IsMonitoringEnabled}"/>
+</StackPanel>
                 </Grid>
             </Border>
 

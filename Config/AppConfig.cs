@@ -9,6 +9,9 @@ public sealed class AppConfig
     // Optional: last selections for convenience
     public string? LastSelectedMonitorId { get; set; }
     public ushort? LastInputSource { get; set; }
+
+    // Persist whether USB monitoring service is enabled.
+    public bool MonitoringEnabled { get; set; } = true;
 }
 
 public sealed class UsbTriggerRule
