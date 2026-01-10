@@ -12,7 +12,7 @@ PortPilot 是一個以 `.NET 8` + `Avalonia UI` 實作的跨平台螢幕訊號�
   - 裝置 **Connected (Added)** 時切換至輸入源 A
   - 裝置 **Disconnected (Removed)** 時切換至輸入源 B
 - 支援偵測支援 DDC/CI 的螢幕
-- Input Source 自定義 (提供常見預設值)
+- Input Source 提供常見預設值
 - USB 目標過濾 (Safe list)：僅監聽特定 VID/PID 的裝置
 - `Debug mode` 開關：
   - 開啟時才記錄 raw USB events 與 Debug log
@@ -170,7 +170,17 @@ ddcutil detect
 ```
 PortPilot-Project/
 ├── PortPilot-Project.csproj
+├── PortPilot-Project.slnx
 ├── README.md
+├── LICENSE.txt
+├── .gitignore
+├── .gitattributes
+├── app.manifest
+├── Program.cs
+├── App.axaml
+├── App.axaml.cs
+├── Assets/
+│   └── avalonia-logo.ico
 ├── Abstractions/
 │   ├── IMonitorController.cs
 │   ├── IUsbWatcher.cs
@@ -182,7 +192,8 @@ PortPilot-Project/
 │   └── InputSourceOption.cs
 ├── ViewModels/
 │   ├── MainWindowViewModel.cs
-│   └── RuleDisplayItem.cs
+│   ├── RuleDisplayItem.cs
+│   └── ViewModelBase.cs
 ├── Views/
 │   ├── MainWindow.axaml
 │   └── MainWindow.axaml.cs
