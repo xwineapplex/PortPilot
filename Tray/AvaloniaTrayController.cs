@@ -51,7 +51,7 @@ public sealed class AvaloniaTrayController : ITrayController
     }
 
     private static string GetMonitoringHeader(bool enabled)
-        => enabled ? "Monitoring Active (ºÊ±±¤¤)" : "Monitoring Inactive (¼È°±¤¤)";
+        => enabled ? "Monitoring Active (ç›£æŽ§ä¸­)" : "Monitoring Inactive (æœªç›£æŽ§)";
 
     private TrayIcon CreateTrayIcon()
     {
