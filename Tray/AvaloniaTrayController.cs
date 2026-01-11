@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -98,27 +97,14 @@ public sealed class AvaloniaTrayController : ITrayController
     {
         try
         {
-            var iconPath = EnsureTrayIconFile();
-            return new WindowIcon(iconPath);
+            var uri = new Uri("avares://PortPilot-Project/Assets/avalonia-logo.ico");
+            using var stream = AssetLoader.Open(uri);
+            return new WindowIcon(stream);
         }
         catch
         {
             return null;
         }
-    }
-
-    private static string EnsureTrayIconFile()
-    {
-        var baseDir = AppContext.BaseDirectory;
-        var path = Path.Combine(baseDir, "tray.ico");
-        if (File.Exists(path))
-            return path;
-
-        var uri = new Uri("avares://PortPilot_Project/Assets/avalonia-logo.ico");
-        using var stream = AssetLoader.Open(uri);
-        using var file = File.Create(path);
-        stream.CopyTo(file);
-        return path;
     }
 
     public void ShowWindow()
