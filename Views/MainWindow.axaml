@@ -150,8 +150,9 @@
 
                     <!-- Bottom Functional Area -->
                     <StackPanel Grid.Row="1" Margin="0,12,0,0">
-     <CheckBox Content="啟用監控服務" IsChecked="{Binding IsMonitoringEnabled}"/>
-</StackPanel>
+                        <CheckBox Content="啟用監控服務" IsChecked="{Binding IsMonitoringEnabled}"/>
+                        <CheckBox Content="關閉視窗時縮小到系統匣" IsChecked="{Binding MinimizeToTrayOnClose}" Margin="0,6,0,0"/>
+                    </StackPanel>
                 </Grid>
             </Border>
 

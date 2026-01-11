@@ -10,6 +10,8 @@ public sealed class AppConfig
     public string? LastSelectedMonitorId { get; set; }
     public ushort? LastInputSource { get; set; }
 
+    public bool MinimizeToTrayOnClose { get; set; } = true;
+
     // Persist whether USB monitoring service is enabled.
     public bool MonitoringEnabled { get; set; } = true;
 }

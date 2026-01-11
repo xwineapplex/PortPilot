@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using PortPilot_Project.ViewModels;
 
 namespace PortPilot_Project.Views
 {
@@ -10,6 +11,22 @@ namespace PortPilot_Project.Views
         {
             InitializeComponent();
             Current = this;
+            Closing += OnClosing;
+        }
+
+        private void OnClosing(object? sender, WindowClosingEventArgs e)
+        {
+            if (DataContext is not MainWindowViewModel vm)
+                return;
+
+            if (vm.IsExiting)
+                return;
+
+            if (vm.MinimizeToTrayOnClose)
+            {
+                e.Cancel = true;
+                Hide();
+            }
         }
     }
 }

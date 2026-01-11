@@ -281,6 +281,7 @@ public partial class MainWindowViewModel : ViewModelBase
             foreach (var r in _config.Rules)
                 Rules.Add(r);
 
+            OnPropertyChanged(nameof(MinimizeToTrayOnClose));
             OnPropertyChanged(nameof(RulesDisplay));
         }
         catch (Exception ex)
@@ -289,6 +290,7 @@ public partial class MainWindowViewModel : ViewModelBase
             _config = new AppConfig();
             Rules.Clear();
 
+            OnPropertyChanged(nameof(MinimizeToTrayOnClose));
             OnPropertyChanged(nameof(RulesDisplay));
         }
     }
@@ -636,6 +638,57 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (SelectedUsbDevice is null || string.IsNullOrWhiteSpace(SelectedUsbDevice.Vid) || string.IsNullOrWhiteSpace(SelectedUsbDevice.Pid))
             SelectedUsbDevice = UsbTargets.FirstOrDefault();
+    }
+
+    private bool _isExiting;
+
+    public bool MinimizeToTrayOnClose
+    {
+        get => _config.MinimizeToTrayOnClose;
+        set
+        {
+            if (_config.MinimizeToTrayOnClose == value)
+                return;
+            _config.MinimizeToTrayOnClose = value;
+            OnPropertyChanged(nameof(MinimizeToTrayOnClose));
+            _ = SaveConfigAsync(updateStatus: false);
+        }
+    }
+
+    public void MarkExiting() => _isExiting = true;
+    public bool IsExiting => _isExiting;
+
+    public void RequestShowWindow()
+    {
+        if (TrayAccess.ShowWindow is { } show)
+            show();
+    }
+
+    [RelayCommand]
+    private void ShowWindow()
+    {
+        RequestShowWindow();
+    }
+
+    [RelayCommand]
+    private void ToggleMonitoringActive()
+    {
+        IsMonitoringEnabled = !IsMonitoringEnabled;
+    }
+
+    [RelayCommand]
+    private async Task ExitApplicationAsync()
+    {
+        MarkExiting();
+        await SaveConfigAsync(updateStatus: false);
+        if (TrayAccess.ExitApplication is { } exit)
+            exit();
+    }
+
+    public static class TrayAccess
+    {
+        public static Action? ShowWindow { get; set; }
+        public static Action? ExitApplication { get; set; }
     }
 
     private sealed class NullMonitorController : IMonitorController

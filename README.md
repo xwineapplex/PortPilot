@@ -11,9 +11,12 @@ PortPilot 是一個以 `.NET 8` + `Avalonia UI` 實作的跨平台螢幕訊號�
 - 雙向觸發動作：
   - 裝置 **Connected (Added)** 時切換至輸入源 A
   - 裝置 **Disconnected (Removed)** 時切換至輸入源 B
-- 支援偵測支援 DDC/CI 的螢幕
+- 偵測支援 DDC/CI 的螢幕
 - Input Source 提供常見預設值
 - USB 目標過濾 (Safe list)：僅監聽特定 VID/PID 的裝置
+- 系統匣 (System Tray) 常駐：
+  - 關閉視窗（X）預設不會結束程式，會縮小到系統匣
+  - 可透過系統匣右鍵選單快速調整「監控中 / 未監控」
 - `Debug mode` 開關：
   - 開啟時才記錄 raw USB events 與 Debug log
   - Debug log 可儲存至檔案 (`debug-log.txt`)
@@ -29,6 +32,28 @@ PortPilot 是一個以 `.NET 8` + `Avalonia UI` 實作的跨平台螢幕訊號�
 - 使用 `ddcutil` 進行 DDC/CI 通訊
 - 使用 `udevadm` 監聽 USB 事件
 - **系統需求**：需安裝 `ddcutil` 並設定權限 (詳見下方 Linux 設定指南)
+
+#### Linux 系統匣相容性說明
+- KDE Plasma：原生支援 (StatusNotifierItem)
+- GNOME：通常需要安裝 AppIndicator / KStatusNotifierItem 類型的 Shell Extension 才能顯示系統匣圖示
+- Wayland：依桌面環境與 DBus 支援狀況而定
+
+> 維持跨平台單一路徑的系統匣實作；在部分環境下系統匣圖示可能會出現空白佔位，但右鍵選單與功能仍可正常運作。
+
+## 系統匣 (System Tray)
+
+- Tooltip：固定顯示 `PortPilot`
+
+### 左鍵點擊
+- 若主視窗為隱藏狀態：顯示主視窗並還原 (Normal state)
+- 若主視窗已顯示：將視窗帶至最上層 (Activate)
+
+### 右鍵選單
+- `Open PortPilot`
+- `Monitoring Active (監控中)` / `Monitoring Inactive (未監控)`
+  - 與主視窗的「啟用監控服務」嚴格同步
+- `Exit`
+  - 會先儲存設定，然後完全結束程序（不受「關閉視窗縮到系統匣」影響）
 
 ## Linux 設定指南 (免 Sudo)
 
@@ -147,13 +172,23 @@ ddcutil detect
     }
   ],
   "lastSelectedMonitorId": "10001:0",
-  "lastInputSource": 15
+  "lastInputSource": 15,
+  "minimizeToTrayOnClose": true,
+  "monitoringEnabled": true
 }
 ```
 
 > **注意**：
 > - Windows `monitorId` 格式範例：`"10001:0"` (HMONITOR:Index)
 > - Linux `monitorId` 格式範例：`"1"` (I2C Bus Number)
+
+### 設定值說明
+
+- `minimizeToTrayOnClose`:
+  - `true`：按下視窗關閉鈕 (X) 時縮小到系統匣
+  - `false`：按下視窗關閉鈕 (X) 時結束程式
+- `monitoringEnabled`:
+  - 控制 USB 監聽服務是否啟用（會被主視窗與系統匣選單同步更新）
 
 ## 輸入訊號代碼參考 (VCP Code 0x60)
 
@@ -184,12 +219,15 @@ PortPilot-Project/
 ├── Abstractions/
 │   ├── IMonitorController.cs
 │   ├── IUsbWatcher.cs
-│   └── Models.cs
+│   ├── Models.cs
+│   └── ITrayController.cs
 ├── Config/
 │   ├── AppConfig.cs
 │   └── ConfigStore.cs
 ├── Models/
 │   └── InputSourceOption.cs
+├── Tray/
+│   └── AvaloniaTrayController.cs
 ├── ViewModels/
 │   ├── MainWindowViewModel.cs
 │   ├── RuleDisplayItem.cs
