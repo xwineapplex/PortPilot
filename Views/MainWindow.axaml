@@ -50,10 +50,11 @@
                                             </ComboBox.ItemTemplate>
                                         </ComboBox>
 
-                                        <Grid ColumnDefinitions="*,*">
-                                            <Button Grid.Column="0" Content="重新整理" Command="{Binding RefreshMonitorsCommand}" Margin="0,0,4,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                                            <Button Grid.Column="1" Content="測試切換" Command="{Binding SwitchInputCommand}" Margin="4,0,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                                        </Grid>
+                                        <!-- Removed the Switch Test button, simplified to only Refresh Monitor button -->
+                                        <Button Content="重新整理螢幕列表" 
+                                                Command="{Binding RefreshMonitorsCommand}" 
+                                                HorizontalAlignment="Stretch" 
+                                                HorizontalContentAlignment="Center"/>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -107,7 +108,8 @@
                                             <TextBlock Text="定義動作" FontWeight="Bold" Foreground="#007ACC"/>
                                         </StackPanel>
 
-                                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" RowSpacing="10">
+                                        <Grid ColumnDefinitions="Auto,*,92" RowDefinitions="Auto,Auto" RowSpacing="10">
+                                            <!-- Row 0: Added -->
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="插入: " VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <ComboBox Grid.Row="0" Grid.Column="1" 
                                                       HorizontalAlignment="Stretch"
@@ -119,7 +121,15 @@
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
+                                            <Button Grid.Row="0" Grid.Column="2" Margin="8,0,0,0"
+                                                    HorizontalAlignment="Stretch"
+                                                    HorizontalContentAlignment="Center"
+                                                    Content="測試"
+                                                    Command="{Binding TestInputSourceCommand}"
+                                                    CommandParameter="{Binding OnAddedInputSourceOption}"
+                                                    ToolTip.Tip="測試切換至此訊號源"/>
 
+                                            <!-- Row 1: Removed -->
                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="拔除: " VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <ComboBox Grid.Row="1" Grid.Column="1" 
                                                       HorizontalAlignment="Stretch"
@@ -131,6 +141,13 @@
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
+                                            <Button Grid.Row="1" Grid.Column="2" Margin="8,0,0,0"
+                                                    HorizontalAlignment="Stretch"
+                                                    HorizontalContentAlignment="Center"
+                                                    Content="測試"
+                                                    Command="{Binding TestInputSourceCommand}"
+                                                    CommandParameter="{Binding OnRemovedInputSourceOption}"
+                                                    ToolTip.Tip="測試切換至此訊號源"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>

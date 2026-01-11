@@ -513,6 +513,33 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool CanSwitchInput() => SelectedMonitor is not null;
 
+    [RelayCommand]
+    private async Task TestInputSourceAsync(InputSourceOption? option)
+    {
+        if (SelectedMonitor is null)
+        {
+            Status = "請先選擇目標螢幕 (Step 1)";
+            return;
+        }
+
+        if (option is null)
+        {
+            Status = "無效的輸入源選項";
+            return;
+        }
+
+        try
+        {
+            Status = $"正在測試切換至: {option.Name} (0x{option.Code:X2})";
+            await _monitorController.SetInputSourceAsync(SelectedMonitor.Id, option.Code);
+            Status = "指令已發送";
+        }
+        catch (Exception ex)
+        {
+            Status = $"錯誤: {ex.Message}";
+        }
+    }
+
     private async Task ApplyRulesAsync(UsbDeviceChangeType changeType, UsbDeviceInfo device)
     {
         if (Rules.Count == 0)
