@@ -1,0 +1,34 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:p="clr-namespace:PortPilot_Project.Properties"
+        xmlns:vm="using:PortPilot_Project.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="220"
+        Width="420" Height="220"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        x:Class="PortPilot_Project.Views.SettingsWindow"
+        x:DataType="vm:SettingsWindowViewModel"
+        Title="{x:Static p:Resources.Settings_Title}">
+
+    <Grid RowDefinitions="Auto,Auto" Margin="16" RowSpacing="14">
+        <StackPanel Grid.Row="0" Spacing="8">
+            <TextBlock Text="{x:Static p:Resources.Settings_Label_Language}" FontWeight="SemiBold" />
+            <ComboBox ItemsSource="{Binding LanguageOptions}"
+                      SelectedItem="{Binding SelectedLanguageOption}"
+                      HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+            <Button Content="{x:Static p:Resources.Common_Cancel}" Command="{Binding CancelCommand}" MinWidth="90" />
+            <Button Content="{x:Static p:Resources.Common_Save}" Command="{Binding SaveCommand}" MinWidth="90" />
+        </StackPanel>
+    </Grid>
+</Window>

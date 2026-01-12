@@ -6,6 +6,12 @@ public sealed class AppConfig
 {
     public List<UsbTriggerRule> Rules { get; set; } = new();
 
+    /// <summary>
+    /// UI language.
+    /// Values: "auto", "en-US", "zh-Hant".
+    /// </summary>
+    public string Language { get; set; } = "auto";
+
     // Optional: last selections for convenience
     public string? LastSelectedMonitorId { get; set; }
     public ushort? LastInputSource { get; set; }

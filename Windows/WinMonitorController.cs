@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using PortPilot_Project.Abstractions;
+using PortPilot_Project.Properties;
 
 namespace PortPilot_Project.Windows;
 
@@ -60,7 +61,7 @@ public sealed class WinMonitorController : IMonitorController
 
         // monitorId format: "<HMONITOR_HEX>:<index>" from GetMonitorsAsync.
         if (!TryParseMonitorId(monitorId, out var hMonitorHex, out var physicalIndex))
-            throw new ArgumentException("Invalid monitor id format.", nameof(monitorId));
+            throw new ArgumentException(Resources.Msg_Error_InvalidMonitorIdFormat, nameof(monitorId));
 
         Native.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, (IntPtr hMon, IntPtr _, ref Native.RECT rc, IntPtr __) =>
         {
@@ -79,7 +80,7 @@ public sealed class WinMonitorController : IMonitorController
             try
             {
                 if (physicalIndex < 0 || physicalIndex >= physical.Length)
-                    throw new ArgumentOutOfRangeException(nameof(monitorId), "Physical monitor index out of range.");
+                    throw new ArgumentOutOfRangeException(nameof(monitorId), Resources.Msg_Error_PhysicalMonitorIndexOutOfRange);
 
                 var pm = physical[physicalIndex];
 

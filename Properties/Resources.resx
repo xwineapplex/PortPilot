@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Common_AppName" xml:space="preserve"><value>PortPilot</value></data>
+  <data name="Common_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="Common_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="Common_RestartNow" xml:space="preserve"><value>Restart now</value></data>
+  <data name="Common_Unknown" xml:space="preserve"><value>Unknown</value></data>
+
+  <data name="Enum_Lang_Auto" xml:space="preserve"><value>System Default</value></data>
+  <data name="Enum_Lang_English" xml:space="preserve"><value>English</value></data>
+  <data name="Enum_Lang_ZhHant" xml:space="preserve"><value>Traditional Chinese</value></data>
+
+  <data name="Enum_InputSource_DisplayPort1" xml:space="preserve"><value>DisplayPort 1</value></data>
+  <data name="Enum_InputSource_DisplayPort2" xml:space="preserve"><value>DisplayPort 2</value></data>
+  <data name="Enum_InputSource_HDMI1" xml:space="preserve"><value>HDMI 1</value></data>
+  <data name="Enum_InputSource_HDMI2" xml:space="preserve"><value>HDMI 2</value></data>
+  <data name="Enum_InputSource_VGA" xml:space="preserve"><value>VGA (D-Sub)</value></data>
+
+  <data name="Main_Title" xml:space="preserve"><value>PortPilot</value></data>
+  <data name="Main_Step1_Title" xml:space="preserve"><value>Target Monitor</value></data>
+  <data name="Main_Step2_Title" xml:space="preserve"><value>Trigger Device (USB)</value></data>
+  <data name="Main_Step3_Title" xml:space="preserve"><value>Define Actions</value></data>
+
+  <data name="Main_Btn_Refresh" xml:space="preserve"><value>Refresh monitor list</value></data>
+  <data name="Main_Btn_AddRule" xml:space="preserve"><value>+ Add rule</value></data>
+  <data name="Main_Btn_Test" xml:space="preserve"><value>Test</value></data>
+  <data name="Main_Btn_Settings" xml:space="preserve"><value>Settings</value></data>
+
+  <data name="Main_Check_ShowAllUsbEvents" xml:space="preserve"><value>Show all USB events</value></data>
+  <data name="Main_Check_EnableMonitoring" xml:space="preserve"><value>Enable monitoring service</value></data>
+  <data name="Main_Check_MinimizeToTray" xml:space="preserve"><value>Minimize to tray when closing</value></data>
+
+  <data name="Main_Header_ActiveRules" xml:space="preserve"><value>Active rules</value></data>
+  <data name="Main_Btn_OpenConfigFolder" xml:space="preserve"><value>Open config folder</value></data>
+
+  <data name="Main_GridHeader_Monitor" xml:space="preserve"><value>Monitor</value></data>
+  <data name="Main_GridHeader_Vid" xml:space="preserve"><value>VID</value></data>
+  <data name="Main_GridHeader_Pid" xml:space="preserve"><value>PID</value></data>
+  <data name="Main_GridHeader_OnAdded" xml:space="preserve"><value>On connect</value></data>
+  <data name="Main_GridHeader_OnRemoved" xml:space="preserve"><value>On disconnect</value></data>
+  <data name="Main_GridHeader_Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Main_Btn_Delete" xml:space="preserve"><value>Delete</value></data>
+
+  <data name="Main_Label_OnAdded" xml:space="preserve"><value>Connect:</value></data>
+  <data name="Main_Label_OnRemoved" xml:space="preserve"><value>Disconnect:</value></data>
+
+  <data name="Main_Tooltip_TestInputSource" xml:space="preserve"><value>Test switching to this input source</value></data>
+
+  <data name="Main_Debug_DebugMode" xml:space="preserve"><value>Debug Mode</value></data>
+  <data name="Main_Debug_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Main_Debug_Save" xml:space="preserve"><value>Save</value></data>
+
+  <data name="Tray_Tooltip_Running" xml:space="preserve"><value>PortPilot is running</value></data>
+  <data name="Tray_Menu_Open" xml:space="preserve"><value>Open PortPilot</value></data>
+  <data name="Tray_Menu_AutoStart" xml:space="preserve"><value>Auto Start</value></data>
+  <data name="Tray_Menu_Exit" xml:space="preserve"><value>Exit</value></data>
+  <data name="Tray_Menu_MonitoringActive" xml:space="preserve"><value>Monitoring Active</value></data>
+  <data name="Tray_Menu_MonitoringInactive" xml:space="preserve"><value>Monitoring Inactive</value></data>
+
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Label_Language" xml:space="preserve"><value>Language</value></data>
+
+  <data name="Msg_LanguageChangedRestart" xml:space="preserve"><value>Language settings changed. Please restart the application to apply changes.</value></data>
+  <data name="Msg_DeviceConnected" xml:space="preserve"><value>Device connected: {0}</value></data>
+  <data name="Msg_DeviceDisconnected" xml:space="preserve"><value>Device disconnected: {0}</value></data>
+
+  <data name="Msg_Error_SwitchInputFailed" xml:space="preserve"><value>Failed to switch input: {0}</value></data>
+  <data name="Msg_Error_NotSupported" xml:space="preserve"><value>Monitor control not supported.</value></data>
+  <data name="Msg_Error_ConfigLoadFailed" xml:space="preserve"><value>Config load failed, using defaults.</value></data>
+
+  <data name="Msg_Error_LinuxUsbWatcher" xml:space="preserve"><value>Error in LinuxUsbWatcher: {0}</value></data>
+  <data name="Msg_Error_UdevadmScanFailed" xml:space="preserve"><value>Error scanning devices with udevadm: {0}</value></data>
+  <data name="Msg_Error_DetectMonitorsFailed" xml:space="preserve"><value>Error detecting monitors: {0}</value></data>
+  <data name="Msg_Error_SetInputSourceFailed" xml:space="preserve"><value>Error setting input source: {0}</value></data>
+  <data name="Msg_Error_DdcutilExited" xml:space="preserve"><value>ddcutil exited with code {0}: {1}</value></data>
+
+  <data name="Msg_Error_InvalidMonitorIdFormat" xml:space="preserve"><value>Invalid monitor id format.</value></data>
+  <data name="Msg_Error_PhysicalMonitorIndexOutOfRange" xml:space="preserve"><value>Physical monitor index out of range.</value></data>
+
+  <data name="Msg_Error_NoValidMonitorSelected" xml:space="preserve"><value>No valid monitor selected (DDC/CI monitor not detected).</value></data>
+  <data name="Msg_Error_SelectedUsbMissingVidPid" xml:space="preserve"><value>Selected USB device does not have VID/PID.</value></data>
+  <data name="Msg_Error_InputSourceZero" xml:space="preserve"><value>Input source is 0. Please choose a valid input source.</value></data>
+
+  <data name="Msg_Status_Saved" xml:space="preserve"><value>Saved: {0}</value></data>
+  <data name="Msg_Status_Opened" xml:space="preserve"><value>Opened: {0}</value></data>
+  <data name="Msg_Status_FoundMonitors" xml:space="preserve"><value>Found {0} monitor(s).</value></data>
+  <data name="Msg_Status_RefreshingMonitors" xml:space="preserve"><value>Refreshing monitors...</value></data>
+  <data name="Msg_Status_MonitoringStarted" xml:space="preserve"><value>Monitoring started</value></data>
+  <data name="Msg_Status_MonitoringStopped" xml:space="preserve"><value>Monitoring stopped</value></data>
+  <data name="Msg_Status_DebugLogCopied" xml:space="preserve"><value>Debug log copied to clipboard.</value></data>
+  <data name="Msg_Status_DebugLogSaved" xml:space="preserve"><value>Debug log saved: {0}</value></data>
+
+  <data name="Msg_Error_ClipboardNotAvailable" xml:space="preserve"><value>Clipboard not available.</value></data>
+  <data name="Msg_Error_InvalidConfigDirectory" xml:space="preserve"><value>Config directory path is invalid.</value></data>
+  <data name="Msg_Error_ConfigDirectoryMissing" xml:space="preserve"><value>Config directory does not exist yet (save a rule first).</value></data>
+  <data name="Msg_Error_OpenFolderFailed" xml:space="preserve"><value>Failed to open folder: {0}</value></data>
+
+  <data name="Msg_Error_SelectMonitorFirst" xml:space="preserve"><value>Please select a target monitor first (Step 1).</value></data>
+  <data name="Msg_Error_InvalidInputSourceOption" xml:space="preserve"><value>Invalid input source option.</value></data>
+  <data name="Msg_Status_TestSwitchingTo" xml:space="preserve"><value>Testing switch to: {0} (0x{1:X2})</value></data>
+  <data name="Msg_Status_CommandSent" xml:space="preserve"><value>Command sent.</value></data>
+  <data name="Msg_Error_Prefix" xml:space="preserve"><value>Error: {0}</value></data>
+
+  <data name="Msg_Status_RuleSet" xml:space="preserve"><value>Rule set for VID:{0} PID:{1}</value></data>
+  <data name="Msg_Status_RuleDeleted" xml:space="preserve"><value>Rule deleted: VID:{0} PID:{1}</value></data>
+  <data name="Msg_Status_RuleMatched" xml:space="preserve"><value>Rule matched VID:{0} PID:{1} ({2}) -&gt; input 0x{3:X2}</value></data>
+  <data name="Msg_Status_RuleApplied" xml:space="preserve"><value>Rule applied.</value></data>
+</root>

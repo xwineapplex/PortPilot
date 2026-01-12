@@ -27,7 +27,7 @@ public sealed class ConfigStore
             return new AppConfig();
 
         await using var stream = File.OpenRead(ConfigPath);
-        var config = await JsonSerializer.DeserializeAsync<AppConfig>(stream, _jsonOptions, cancellationToken);
+        var config = await JsonSerializer.DeserializeAsync<AppConfig>(stream, _jsonOptions, cancellationToken).ConfigureAwait(false);
         return config ?? new AppConfig();
     }
 
@@ -38,7 +38,7 @@ public sealed class ConfigStore
             Directory.CreateDirectory(dir);
 
         await using var stream = File.Create(ConfigPath);
-        await JsonSerializer.SerializeAsync(stream, config, _jsonOptions, cancellationToken);
+        await JsonSerializer.SerializeAsync(stream, config, _jsonOptions, cancellationToken).ConfigureAwait(false);
     }
 
     private static string GetDefaultConfigPath()

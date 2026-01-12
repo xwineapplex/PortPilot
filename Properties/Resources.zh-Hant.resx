@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Common_AppName" xml:space="preserve"><value>PortPilot</value></data>
+  <data name="Common_Error" xml:space="preserve"><value>錯誤</value></data>
+  <data name="Common_Save" xml:space="preserve"><value>儲存</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Common_Ok" xml:space="preserve"><value>確定</value></data>
+  <data name="Common_RestartNow" xml:space="preserve"><value>立即重啟</value></data>
+  <data name="Common_Unknown" xml:space="preserve"><value>未知</value></data>
+
+  <data name="Enum_Lang_Auto" xml:space="preserve"><value>系統預設</value></data>
+  <data name="Enum_Lang_English" xml:space="preserve"><value>English</value></data>
+  <data name="Enum_Lang_ZhHant" xml:space="preserve"><value>繁體中文</value></data>
+
+  <data name="Enum_InputSource_DisplayPort1" xml:space="preserve"><value>DisplayPort 1</value></data>
+  <data name="Enum_InputSource_DisplayPort2" xml:space="preserve"><value>DisplayPort 2</value></data>
+  <data name="Enum_InputSource_HDMI1" xml:space="preserve"><value>HDMI 1</value></data>
+  <data name="Enum_InputSource_HDMI2" xml:space="preserve"><value>HDMI 2</value></data>
+  <data name="Enum_InputSource_VGA" xml:space="preserve"><value>D-Sub (VGA)</value></data>
+
+  <data name="Main_Title" xml:space="preserve"><value>PortPilot</value></data>
+  <data name="Main_Step1_Title" xml:space="preserve"><value>目標螢幕</value></data>
+  <data name="Main_Step2_Title" xml:space="preserve"><value>觸發裝置 (USB)</value></data>
+  <data name="Main_Step3_Title" xml:space="preserve"><value>定義動作</value></data>
+
+  <data name="Main_Btn_Refresh" xml:space="preserve"><value>重新整理螢幕列表</value></data>
+  <data name="Main_Btn_AddRule" xml:space="preserve"><value>+ 新增規則</value></data>
+  <data name="Main_Btn_Test" xml:space="preserve"><value>測試</value></data>
+  <data name="Main_Btn_Settings" xml:space="preserve"><value>設定</value></data>
+
+  <data name="Main_Check_ShowAllUsbEvents" xml:space="preserve"><value>顯示所有 USB 事件</value></data>
+  <data name="Main_Check_EnableMonitoring" xml:space="preserve"><value>啟用監控服務</value></data>
+  <data name="Main_Check_MinimizeToTray" xml:space="preserve"><value>關閉視窗時縮小到系統匣</value></data>
+
+  <data name="Main_Header_ActiveRules" xml:space="preserve"><value>目前生效規則</value></data>
+  <data name="Main_Btn_OpenConfigFolder" xml:space="preserve"><value>開啟設定資料夾</value></data>
+
+  <data name="Main_GridHeader_Monitor" xml:space="preserve"><value>目標螢幕</value></data>
+  <data name="Main_GridHeader_Vid" xml:space="preserve"><value>VID</value></data>
+  <data name="Main_GridHeader_Pid" xml:space="preserve"><value>PID</value></data>
+  <data name="Main_GridHeader_OnAdded" xml:space="preserve"><value>插入動作</value></data>
+  <data name="Main_GridHeader_OnRemoved" xml:space="preserve"><value>拔除動作</value></data>
+  <data name="Main_GridHeader_Actions" xml:space="preserve"><value>操作</value></data>
+  <data name="Main_Btn_Delete" xml:space="preserve"><value>刪除</value></data>
+
+  <data name="Main_Label_OnAdded" xml:space="preserve"><value>插入:</value></data>
+  <data name="Main_Label_OnRemoved" xml:space="preserve"><value>拔除:</value></data>
+
+  <data name="Main_Tooltip_TestInputSource" xml:space="preserve"><value>測試切換至此訊號源</value></data>
+
+  <data name="Main_Debug_DebugMode" xml:space="preserve"><value>除錯模式</value></data>
+  <data name="Main_Debug_Copy" xml:space="preserve"><value>複製</value></data>
+  <data name="Main_Debug_Save" xml:space="preserve"><value>儲存</value></data>
+
+  <data name="Tray_Tooltip_Running" xml:space="preserve"><value>PortPilot 正在執行</value></data>
+  <data name="Tray_Menu_Open" xml:space="preserve"><value>開啟 PortPilot</value></data>
+  <data name="Tray_Menu_AutoStart" xml:space="preserve"><value>開機自動啟動</value></data>
+  <data name="Tray_Menu_Exit" xml:space="preserve"><value>離開</value></data>
+  <data name="Tray_Menu_MonitoringActive" xml:space="preserve"><value>監控中</value></data>
+  <data name="Tray_Menu_MonitoringInactive" xml:space="preserve"><value>未監控</value></data>
+
+  <data name="Settings_Title" xml:space="preserve"><value>設定</value></data>
+  <data name="Settings_Label_Language" xml:space="preserve"><value>語言</value></data>
+
+  <data name="Msg_LanguageChangedRestart" xml:space="preserve"><value>語言設定已變更，請重新啟動程式以套用生效。</value></data>
+  <data name="Msg_DeviceConnected" xml:space="preserve"><value>裝置已連接：{0}</value></data>
+  <data name="Msg_DeviceDisconnected" xml:space="preserve"><value>裝置已中斷：{0}</value></data>
+
+  <data name="Msg_Error_SwitchInputFailed" xml:space="preserve"><value>切換輸入源失敗：{0}</value></data>
+  <data name="Msg_Error_NotSupported" xml:space="preserve"><value>不支援螢幕控制功能。</value></data>
+  <data name="Msg_Error_ConfigLoadFailed" xml:space="preserve"><value>設定讀取失敗，已改用預設值。</value></data>
+
+  <data name="Msg_Error_LinuxUsbWatcher" xml:space="preserve"><value>LinuxUsbWatcher 發生錯誤：{0}</value></data>
+  <data name="Msg_Error_UdevadmScanFailed" xml:space="preserve"><value>使用 udevadm 掃描裝置失敗：{0}</value></data>
+  <data name="Msg_Error_DetectMonitorsFailed" xml:space="preserve"><value>偵測螢幕失敗：{0}</value></data>
+  <data name="Msg_Error_SetInputSourceFailed" xml:space="preserve"><value>設定輸入源失敗：{0}</value></data>
+  <data name="Msg_Error_DdcutilExited" xml:space="preserve"><value>ddcutil 結束碼 {0}：{1}</value></data>
+
+  <data name="Msg_Error_InvalidMonitorIdFormat" xml:space="preserve"><value>螢幕 ID 格式無效。</value></data>
+  <data name="Msg_Error_PhysicalMonitorIndexOutOfRange" xml:space="preserve"><value>實體螢幕索引超出範圍。</value></data>
+
+  <data name="Msg_Error_NoValidMonitorSelected" xml:space="preserve"><value>未選擇有效的目標螢幕（可能未偵測到支援 DDC/CI 的螢幕）。</value></data>
+  <data name="Msg_Error_SelectedUsbMissingVidPid" xml:space="preserve"><value>所選 USB 裝置缺少 VID/PID。</value></data>
+  <data name="Msg_Error_InputSourceZero" xml:space="preserve"><value>輸入源為 0，請選擇有效的輸入源。</value></data>
+
+  <data name="Msg_Status_Saved" xml:space="preserve"><value>已儲存：{0}</value></data>
+  <data name="Msg_Status_Opened" xml:space="preserve"><value>已開啟：{0}</value></data>
+  <data name="Msg_Status_FoundMonitors" xml:space="preserve"><value>找到 {0} 個螢幕。</value></data>
+  <data name="Msg_Status_RefreshingMonitors" xml:space="preserve"><value>正在重新整理螢幕...</value></data>
+  <data name="Msg_Status_MonitoringStarted" xml:space="preserve"><value>監控服務已啟動</value></data>
+  <data name="Msg_Status_MonitoringStopped" xml:space="preserve"><value>監控服務已停止</value></data>
+  <data name="Msg_Status_DebugLogCopied" xml:space="preserve"><value>已將除錯紀錄複製到剪貼簿。</value></data>
+  <data name="Msg_Status_DebugLogSaved" xml:space="preserve"><value>除錯紀錄已儲存：{0}</value></data>
+
+  <data name="Msg_Error_ClipboardNotAvailable" xml:space="preserve"><value>剪貼簿不可用。</value></data>
+  <data name="Msg_Error_InvalidConfigDirectory" xml:space="preserve"><value>設定資料夾路徑無效。</value></data>
+  <data name="Msg_Error_ConfigDirectoryMissing" xml:space="preserve"><value>設定資料夾尚不存在（請先儲存一次規則）。</value></data>
+  <data name="Msg_Error_OpenFolderFailed" xml:space="preserve"><value>開啟資料夾失敗：{0}</value></data>
+
+  <data name="Msg_Error_SelectMonitorFirst" xml:space="preserve"><value>請先選擇目標螢幕 (Step 1)。</value></data>
+  <data name="Msg_Error_InvalidInputSourceOption" xml:space="preserve"><value>無效的輸入源選項。</value></data>
+  <data name="Msg_Status_TestSwitchingTo" xml:space="preserve"><value>正在測試切換至：{0} (0x{1:X2})</value></data>
+  <data name="Msg_Status_CommandSent" xml:space="preserve"><value>指令已發送</value></data>
+  <data name="Msg_Error_Prefix" xml:space="preserve"><value>錯誤：{0}</value></data>
+
+  <data name="Msg_Status_RuleSet" xml:space="preserve"><value>已設定規則：VID:{0} PID:{1}</value></data>
+  <data name="Msg_Status_RuleDeleted" xml:space="preserve"><value>已刪除規則：VID:{0} PID:{1}</value></data>
+  <data name="Msg_Status_RuleMatched" xml:space="preserve"><value>規則符合 VID:{0} PID:{1} ({2}) -&gt; 輸入源 0x{3:X2}</value></data>
+  <data name="Msg_Status_RuleApplied" xml:space="preserve"><value>規則已套用。</value></data>
+</root>

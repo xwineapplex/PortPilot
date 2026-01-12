@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using PortPilot_Project.Abstractions;
+using PortPilot_Project.Properties;
 
 namespace PortPilot_Project.Linux;
 
@@ -81,7 +83,7 @@ public sealed class LinuxMonitorController : IMonitorController
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error detecting monitors: {ex.Message}");
+            Console.WriteLine(string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_DetectMonitorsFailed, ex.Message));
         }
 
         return result;
@@ -100,7 +102,7 @@ public sealed class LinuxMonitorController : IMonitorController
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error setting input source: {ex.Message}");
+            Console.WriteLine(string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_SetInputSourceFailed, ex.Message));
         }
     }
 
@@ -127,7 +129,7 @@ public sealed class LinuxMonitorController : IMonitorController
         if (process.ExitCode != 0)
         {
             var error = await errorTask;
-            throw new Exception($"ddcutil exited with code {process.ExitCode}: {error}");
+            throw new Exception(string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_DdcutilExited, process.ExitCode, error));
         }
 
         return await outputTask;

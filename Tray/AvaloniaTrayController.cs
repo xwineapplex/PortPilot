@@ -5,6 +5,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using PortPilot_Project.Abstractions;
+using PortPilot_Project.Properties;
 using PortPilot_Project.ViewModels;
 using PortPilot_Project.Views;
 
@@ -50,7 +51,7 @@ public sealed class AvaloniaTrayController : ITrayController
     }
 
     private static string GetMonitoringHeader(bool enabled)
-        => enabled ? "Monitoring Active (監控中)" : "Monitoring Inactive (未監控)";
+        => enabled ? Resources.Tray_Menu_MonitoringActive : Resources.Tray_Menu_MonitoringInactive;
 
     private TrayIcon CreateTrayIcon()
     {
@@ -59,7 +60,7 @@ public sealed class AvaloniaTrayController : ITrayController
         var windowIcon = LoadTrayWindowIcon();
         var icon = new TrayIcon
         {
-            ToolTipText = "PortPilot",
+            ToolTipText = Resources.Tray_Tooltip_Running,
             Icon = windowIcon,
         };
 
@@ -67,7 +68,7 @@ public sealed class AvaloniaTrayController : ITrayController
 
         var menu = new NativeMenu();
 
-        var open = new NativeMenuItem("Open PortPilot")
+        var open = new NativeMenuItem(Resources.Tray_Menu_Open)
         {
             Command = vm.ShowWindowCommand,
         };
@@ -79,7 +80,7 @@ public sealed class AvaloniaTrayController : ITrayController
             Command = vm.ToggleMonitoringActiveCommand,
         };
 
-        var exit = new NativeMenuItem("Exit")
+        var exit = new NativeMenuItem(Resources.Tray_Menu_Exit)
         {
             Command = vm.ExitApplicationCommand,
         };

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -10,8 +11,10 @@ using CommunityToolkit.Mvvm.Input;
 using PortPilot_Project.Abstractions;
 using PortPilot_Project.Config;
 using PortPilot_Project.Models;
+using PortPilot_Project.Properties;
 using PortPilot_Project.Windows;
 using PortPilot_Project.Linux;
+using PortPilot_Project.Views;
 
 namespace PortPilot_Project.ViewModels;
 
@@ -101,11 +104,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public IReadOnlyList<InputSourceOption> InputSourceOptions { get; } = new[]
     {
-        new InputSourceOption("DisplayPort 1", 0x0F),
-        new InputSourceOption("DisplayPort 2", 0x10),
-        new InputSourceOption("HDMI 1", 0x11),
-        new InputSourceOption("HDMI 2", 0x12),
-        new InputSourceOption("D-Sub (VGA)", 0x01),
+        new InputSourceOption(Resources.Enum_InputSource_DisplayPort1, 0x0F),
+        new InputSourceOption(Resources.Enum_InputSource_DisplayPort2, 0x10),
+        new InputSourceOption(Resources.Enum_InputSource_HDMI1, 0x11),
+        new InputSourceOption(Resources.Enum_InputSource_HDMI2, 0x12),
+        new InputSourceOption(Resources.Enum_InputSource_VGA, 0x01),
     };
 
     [ObservableProperty]
@@ -174,7 +177,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 // Update targets immediately (no debounce).
                 DiffUpdateUsbTargets(e.Device);
 
-                Status = $"USB {e.ChangeType}: {e.Device.Name ?? e.Device.DeviceId}";
+                var deviceLabel = e.Device.Name ?? e.Device.DeviceId;
+                Status = e.ChangeType == UsbDeviceChangeType.Added
+                    ? string.Format(CultureInfo.CurrentUICulture, Resources.Msg_DeviceConnected, deviceLabel)
+                    : string.Format(CultureInfo.CurrentUICulture, Resources.Msg_DeviceDisconnected, deviceLabel);
 
                 await ApplyRulesAsync(e.ChangeType, e.Device);
             });
@@ -238,12 +244,12 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
 
                 _usbWatcher.Start();
-                Status = "監控服務已啟動";
+                Status = Resources.Msg_Status_MonitoringStarted;
                 Log("USB watcher started (enabled)");
             }
             catch (Exception ex)
             {
-                Status = ex.Message;
+                Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_Prefix, ex.Message);
                 Log($"USB watcher start failed: {ex}");
 
                 // Revert UI state on failure.
@@ -257,12 +263,12 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 // Start -> Stop semantics (Stop is idempotent).
                 _usbWatcher.Stop();
-                Status = "監控服務已停止";
+                Status = Resources.Msg_Status_MonitoringStopped;
                 Log("USB watcher stopped (disabled)");
             }
             catch (Exception ex)
             {
-                Status = ex.Message;
+                Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_Prefix, ex.Message);
                 Log($"USB watcher stop failed: {ex}");
             }
         }
@@ -284,9 +290,9 @@ public partial class MainWindowViewModel : ViewModelBase
             OnPropertyChanged(nameof(MinimizeToTrayOnClose));
             OnPropertyChanged(nameof(RulesDisplay));
         }
-        catch (Exception ex)
+        catch
         {
-            Status = ex.Message;
+            Status = Resources.Msg_Error_ConfigLoadFailed;
             _config = new AppConfig();
             Rules.Clear();
 
@@ -334,13 +340,13 @@ public partial class MainWindowViewModel : ViewModelBase
             await _configStore.SaveAsync(_config);
 
             if (updateStatus)
-                Status = $"Saved: {_configStore.ConfigPath}";
+                Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Status_Saved, _configStore.ConfigPath);
 
             Log("SaveConfig: done");
         }
         catch (Exception ex)
         {
-            Status = ex.Message;
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_Prefix, ex.Message);
             Log($"SaveConfig failed: {ex}");
         }
     }
@@ -358,14 +364,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (string.IsNullOrWhiteSpace(SelectedMonitor.Id))
         {
-            Status = "No valid monitor selected (DDC/CI monitor not detected).";
+            Status = Resources.Msg_Error_NoValidMonitorSelected;
             Log($"AddRule aborted: invalid monitor id ''{SelectedMonitor.Id}''");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(SelectedUsbDevice.Vid) || string.IsNullOrWhiteSpace(SelectedUsbDevice.Pid))
         {
-            Status = "Selected USB device does not have VID/PID.";
+            Status = Resources.Msg_Error_SelectedUsbMissingVidPid;
             Log($"AddRule aborted: VID/PID missing. DeviceId='{SelectedUsbDevice.DeviceId}'");
             return;
         }
@@ -375,7 +381,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (addedCode == 0)
         {
-            Status = "InputSource is 0. Please choose a valid input source.";
+            Status = Resources.Msg_Error_InputSourceZero;
             Log("AddRule aborted: InputSource is 0");
             return;
          }
@@ -412,7 +418,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
          OnPropertyChanged(nameof(RulesDisplay));
          await SaveConfigAsync();
-         Status = $"Rule set for VID:{SelectedUsbDevice.Vid} PID:{SelectedUsbDevice.Pid}";
+         Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Status_RuleSet, SelectedUsbDevice.Vid, SelectedUsbDevice.Pid);
          Log("AddRule: done");
      }
 
@@ -425,7 +431,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             OnPropertyChanged(nameof(RulesDisplay));
             await SaveConfigAsync();
-            Status = $"Rule deleted: VID:{rule.Vid} PID:{rule.Pid}";
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Status_RuleDeleted, rule.Vid, rule.Pid);
             Log($"Rule deleted: VID={rule.Vid} PID={rule.Pid}");
         }
     }
@@ -438,13 +444,13 @@ public partial class MainWindowViewModel : ViewModelBase
             var dir = System.IO.Path.GetDirectoryName(_configStore.ConfigPath);
             if (string.IsNullOrWhiteSpace(dir))
             {
-                Status = "Config directory path is invalid.";
+                Status = Resources.Msg_Error_InvalidConfigDirectory;
                 return;
             }
 
             if (!System.IO.Directory.Exists(dir))
             {
-                Status = "Config directory does not exist yet (save a rule first).";
+                Status = Resources.Msg_Error_ConfigDirectoryMissing;
                 return;
             }
 
@@ -461,11 +467,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 Process.Start("open", dir);
             }
             
-            Status = $"Opened: {dir}";
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Status_Opened, dir);
         }
         catch (Exception ex)
         {
-            Status = $"Failed to open folder: {ex.Message}";
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_OpenFolderFailed, ex.Message);
         }
     }
 
@@ -474,13 +480,13 @@ public partial class MainWindowViewModel : ViewModelBase
     {
          try
          {
-             Status = "Refreshing monitors...";
+             Status = Resources.Msg_Status_RefreshingMonitors;
              Monitors.Clear();
              var monitors = await _monitorController.GetMonitorsAsync();
              foreach (var m in monitors)
                  Monitors.Add(m);
              SelectedMonitor ??= Monitors.Count > 0 ? Monitors[0] : null;
-             Status = $"Found {Monitors.Count} monitor(s).";
+             Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Status_FoundMonitors, Monitors.Count);
              OnPropertyChanged(nameof(RulesDisplay));
              Log($"RefreshMonitors: {Monitors.Count} monitor(s)");
              if (Monitors.Count > 0)
@@ -488,7 +494,7 @@ public partial class MainWindowViewModel : ViewModelBase
          }
          catch (Exception ex)
          {
-             Status = ex.Message;
+             Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_Prefix, ex.Message);
              Log($"RefreshMonitors failed: {ex}");
          }
      }
@@ -501,13 +507,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
-            Status = $"Switching input: 0x{InputSource:X2}";
+            var name = SelectedInputSourceOption?.Name ?? $"0x{InputSource:X2}";
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Status_TestSwitchingTo, name, InputSource);
             await _monitorController.SetInputSourceAsync(SelectedMonitor.Id, InputSource);
-            Status = "Input switched.";
+            Status = Resources.Msg_Status_CommandSent;
         }
         catch (Exception ex)
         {
-            Status = ex.Message;
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_SwitchInputFailed, ex.Message);
         }
     }
 
@@ -518,25 +525,25 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (SelectedMonitor is null)
         {
-            Status = "請先選擇目標螢幕 (Step 1)";
+            Status = Resources.Msg_Error_SelectMonitorFirst;
             return;
         }
 
         if (option is null)
         {
-            Status = "無效的輸入源選項";
+            Status = Resources.Msg_Error_InvalidInputSourceOption;
             return;
         }
 
         try
         {
-            Status = $"正在測試切換至: {option.Name} (0x{option.Code:X2})";
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Status_TestSwitchingTo, option.Name, option.Code);
             await _monitorController.SetInputSourceAsync(SelectedMonitor.Id, option.Code);
-            Status = "指令已發送";
+            Status = Resources.Msg_Status_CommandSent;
         }
         catch (Exception ex)
         {
-            Status = $"錯誤: {ex.Message}";
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_Prefix, ex.Message);
         }
     }
 
@@ -561,13 +568,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
          try
          {
-            Status = $"Rule matched VID:{device.Vid} PID:{device.Pid} ({changeType}) -> input 0x{action.InputSource:X2}";
+            Status = string.Format(
+                CultureInfo.CurrentUICulture,
+                Resources.Msg_Status_RuleMatched,
+                device.Vid,
+                device.Pid,
+                changeType,
+                action.InputSource);
             await _monitorController.SetInputSourceAsync(action.MonitorId!, action.InputSource);
-            Status = "Rule applied.";
+            Status = Resources.Msg_Status_RuleApplied;
          }
          catch (Exception ex)
          {
-             Status = ex.Message;
+             Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_SwitchInputFailed, ex.Message);
          }
      }
 
@@ -582,16 +595,16 @@ public partial class MainWindowViewModel : ViewModelBase
             var clipboard = PortPilot_Project.Views.MainWindow.Current?.Clipboard;
             if (clipboard is null)
             {
-                Status = "Clipboard not available.";
+                Status = Resources.Msg_Error_ClipboardNotAvailable;
                 return;
             }
 
             await Dispatcher.UIThread.InvokeAsync(async () => await clipboard.SetTextAsync(text));
-            Status = "Debug log copied to clipboard.";
+            Status = Resources.Msg_Status_DebugLogCopied;
         }
         catch (Exception ex)
         {
-            Status = ex.Message;
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_Prefix, ex.Message);
         }
     }
 
@@ -606,12 +619,24 @@ public partial class MainWindowViewModel : ViewModelBase
 
             var path = System.IO.Path.Combine(dir, "debug-log.txt");
             await System.IO.File.WriteAllTextAsync(path, GetDebugLogText());
-            Status = $"Debug log saved: {path}";
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Status_DebugLogSaved, path);
         }
         catch (Exception ex)
         {
-            Status = ex.Message;
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_Prefix, ex.Message);
         }
+    }
+
+    [RelayCommand]
+    private async Task OpenSettingsAsync()
+    {
+        var owner = MainWindow.Current;
+        var win = new SettingsWindow(_configStore);
+
+        if (owner is not null)
+            await win.ShowDialog(owner);
+        else
+            win.Show();
     }
 
     private void DiffUpdateUsbTargets(UsbDeviceInfo? latest)

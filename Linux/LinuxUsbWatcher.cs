@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using PortPilot_Project.Abstractions;
+using PortPilot_Project.Properties;
 
 namespace PortPilot_Project.Linux;
 
@@ -90,7 +92,7 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in LinuxUsbWatcher: {ex.Message}");
+            Console.WriteLine(string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_LinuxUsbWatcher, ex.Message));
         }
     }
 
@@ -109,7 +111,7 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
             if (!properties.TryGetValue("ID_VENDOR_ID", out var vid)) return;
             if (!properties.TryGetValue("ID_MODEL_ID", out var pid)) return;
 
-            var name = properties.TryGetValue("ID_MODEL", out var model) ? model : "Unknown";
+            var name = properties.TryGetValue("ID_MODEL", out var model) ? model : Resources.Common_Unknown;
             var vendor = properties.TryGetValue("ID_VENDOR", out var v) ? v : "";
             if (!string.IsNullOrEmpty(vendor)) name = $"{vendor} {name}";
 
@@ -179,7 +181,7 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
                         if (info == null)
                         {
                              // Still not found, but we have enough info to report a removal
-                             var name = properties.TryGetValue("ID_MODEL", out var model) ? model : "Unknown";
+                             var name = properties.TryGetValue("ID_MODEL", out var model) ? model : Resources.Common_Unknown;
                              var vendor = properties.TryGetValue("ID_VENDOR", out var v) ? v : "";
                              if (!string.IsNullOrEmpty(vendor)) name = $"{vendor} {name}";
                              
@@ -266,7 +268,7 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
                 if (!properties.TryGetValue("ID_VENDOR_ID", out var vid)) continue;
                 if (!properties.TryGetValue("ID_MODEL_ID", out var pid)) continue;
 
-                var name = properties.TryGetValue("ID_MODEL", out var model) ? model : "Unknown";
+                var name = properties.TryGetValue("ID_MODEL", out var model) ? model : Resources.Common_Unknown;
                 var vendor = properties.TryGetValue("ID_VENDOR", out var v) ? v : "";
                 if (!string.IsNullOrEmpty(vendor)) name = $"{vendor} {name}";
 
@@ -290,7 +292,7 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error scanning devices with udevadm: {ex.Message}");
+            Console.WriteLine(string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_UdevadmScanFailed, ex.Message));
         }
         return devices;
     }

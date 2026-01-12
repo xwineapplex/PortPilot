@@ -1,6 +1,7 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PortPilot_Project.ViewModels"
+    xmlns:p="clr-namespace:PortPilot_Project.Properties"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
@@ -8,7 +9,7 @@
         x:Class="PortPilot_Project.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="PortPilot">
+    Title="{x:Static p:Resources.Main_Title}">
         <!-- 已移除強制背景色，現在會自動適應系統深色/淺色主題 -->
 
     <Design.DataContext>
@@ -36,7 +37,7 @@
                                     <StackPanel Spacing="10">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <TextBlock Text="1." Foreground="#007ACC" FontWeight="Bold"/>
-                                            <TextBlock Text="目標螢幕" FontWeight="Bold" Foreground="#007ACC"/>
+                                            <TextBlock Text="{x:Static p:Resources.Main_Step1_Title}" FontWeight="Bold" Foreground="#007ACC"/>
                                         </StackPanel>
                                         
                                         <ComboBox ItemsSource="{Binding Monitors}" 
@@ -51,7 +52,7 @@
                                         </ComboBox>
 
                                         <!-- Removed the Switch Test button, simplified to only Refresh Monitor button -->
-                                        <Button Content="重新整理螢幕列表" 
+                                        <Button Content="{x:Static p:Resources.Main_Btn_Refresh}" 
                                                 Command="{Binding RefreshMonitorsCommand}" 
                                                 HorizontalAlignment="Stretch" 
                                                 HorizontalContentAlignment="Center"/>
@@ -66,7 +67,7 @@
                                     <StackPanel Spacing="10">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <TextBlock Text="2." Foreground="#007ACC" FontWeight="Bold"/>
-                                            <TextBlock Text="觸發裝置 (USB)" FontWeight="Bold" Foreground="#007ACC"/>
+                                            <TextBlock Text="{x:Static p:Resources.Main_Step2_Title}" FontWeight="Bold" Foreground="#007ACC"/>
                                         </StackPanel>
 
                                         <ListBox ItemsSource="{Binding UsbTargets}" 
@@ -90,7 +91,7 @@
                                             </ListBox.ItemTemplate>
                                         </ListBox>
                                         
-                                        <CheckBox Content="顯示所有 USB 事件" 
+                                        <CheckBox Content="{x:Static p:Resources.Main_Check_ShowAllUsbEvents}" 
                                                   IsChecked="{Binding ShowAllUsbEvents}" 
                                                   FontSize="12"
                                                   Opacity="0.8"/>
@@ -105,12 +106,12 @@
                                     <StackPanel Spacing="10">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <TextBlock Text="3." Foreground="#007ACC" FontWeight="Bold"/>
-                                            <TextBlock Text="定義動作" FontWeight="Bold" Foreground="#007ACC"/>
+                                            <TextBlock Text="{x:Static p:Resources.Main_Step3_Title}" FontWeight="Bold" Foreground="#007ACC"/>
                                         </StackPanel>
 
                                         <Grid ColumnDefinitions="Auto,*,92" RowDefinitions="Auto,Auto" RowSpacing="10">
                                             <!-- Row 0: Added -->
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="插入: " VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static p:Resources.Main_Label_OnAdded}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <ComboBox Grid.Row="0" Grid.Column="1" 
                                                       HorizontalAlignment="Stretch"
                                                       ItemsSource="{Binding InputSourceOptions}" 
@@ -124,13 +125,13 @@
                                             <Button Grid.Row="0" Grid.Column="2" Margin="8,0,0,0"
                                                     HorizontalAlignment="Stretch"
                                                     HorizontalContentAlignment="Center"
-                                                    Content="測試"
+                                                    Content="{x:Static p:Resources.Main_Btn_Test}"
                                                     Command="{Binding TestInputSourceCommand}"
                                                     CommandParameter="{Binding OnAddedInputSourceOption}"
-                                                    ToolTip.Tip="測試切換至此訊號源"/>
+                                                    ToolTip.Tip="{x:Static p:Resources.Main_Tooltip_TestInputSource}"/>
 
                                             <!-- Row 1: Removed -->
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="拔除: " VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static p:Resources.Main_Label_OnRemoved}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <ComboBox Grid.Row="1" Grid.Column="1" 
                                                       HorizontalAlignment="Stretch"
                                                       ItemsSource="{Binding InputSourceOptions}" 
@@ -144,17 +145,17 @@
                                             <Button Grid.Row="1" Grid.Column="2" Margin="8,0,0,0"
                                                     HorizontalAlignment="Stretch"
                                                     HorizontalContentAlignment="Center"
-                                                    Content="測試"
+                                                    Content="{x:Static p:Resources.Main_Btn_Test}"
                                                     Command="{Binding TestInputSourceCommand}"
                                                     CommandParameter="{Binding OnRemovedInputSourceOption}"
-                                                    ToolTip.Tip="測試切換至此訊號源"/>
+                                                    ToolTip.Tip="{x:Static p:Resources.Main_Tooltip_TestInputSource}"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
 
                             <!-- Add Rule Button -->
-                            <Button Content="+ 新增規則" 
+                                <Button Content="{x:Static p:Resources.Main_Btn_AddRule}" 
                                     Command="{Binding AddRuleFromSelectionCommand}" 
                                     HorizontalAlignment="Stretch" 
                                     HorizontalContentAlignment="Center"
@@ -167,8 +168,8 @@
 
                     <!-- Bottom Functional Area -->
                     <StackPanel Grid.Row="1" Margin="0,12,0,0">
-                        <CheckBox Content="啟用監控服務" IsChecked="{Binding IsMonitoringEnabled}"/>
-                        <CheckBox Content="關閉視窗時縮小到系統匣" IsChecked="{Binding MinimizeToTrayOnClose}" Margin="0,6,0,0"/>
+                        <CheckBox Content="{x:Static p:Resources.Main_Check_EnableMonitoring}" IsChecked="{Binding IsMonitoringEnabled}"/>
+                        <CheckBox Content="{x:Static p:Resources.Main_Check_MinimizeToTray}" IsChecked="{Binding MinimizeToTrayOnClose}" Margin="0,6,0,0"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -178,8 +179,8 @@
                 
                 <!-- Header -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
-                    <TextBlock Grid.Column="0" Text="目前生效規則" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Foreground="#007ACC"/>
-                    <Button Grid.Column="1" Content="開啟設定資料夾" Command="{Binding OpenConfigFolderCommand}" Padding="8,4"/>
+                    <TextBlock Grid.Column="0" Text="{x:Static p:Resources.Main_Header_ActiveRules}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Foreground="#007ACC"/>
+                    <Button Grid.Column="1" Content="{x:Static p:Resources.Main_Btn_OpenConfigFolder}" Command="{Binding OpenConfigFolderCommand}" Padding="8,4"/>
                 </Grid>
                 
                 <!-- DataGrid -->
@@ -193,15 +194,15 @@
                           BorderThickness="1" 
                           BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="VID" Binding="{Binding Vid}" Width="Auto"/>
-                        <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="Auto"/>
-                        <DataGridTextColumn Header="目標螢幕" Binding="{Binding MonitorName}" Width="*"/>
-                        <DataGridTextColumn Header="插入動作" Binding="{Binding OnAddedLabel}" Width="Auto"/>
-                        <DataGridTextColumn Header="拔除動作" Binding="{Binding OnRemovedLabel}" Width="Auto"/>
-                        <DataGridTemplateColumn Header="操作" Width="Auto">
+                        <DataGridTextColumn Header="{x:Static p:Resources.Main_GridHeader_Vid}" Binding="{Binding Vid}" Width="Auto"/>
+                        <DataGridTextColumn Header="{x:Static p:Resources.Main_GridHeader_Pid}" Binding="{Binding Pid}" Width="Auto"/>
+                        <DataGridTextColumn Header="{x:Static p:Resources.Main_GridHeader_Monitor}" Binding="{Binding MonitorName}" Width="*"/>
+                        <DataGridTextColumn Header="{x:Static p:Resources.Main_GridHeader_OnAdded}" Binding="{Binding OnAddedLabel}" Width="Auto"/>
+                        <DataGridTextColumn Header="{x:Static p:Resources.Main_GridHeader_OnRemoved}" Binding="{Binding OnRemovedLabel}" Width="Auto"/>
+                        <DataGridTemplateColumn Header="{x:Static p:Resources.Main_GridHeader_Actions}" Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Content="刪除" 
+                                    <Button Content="{x:Static p:Resources.Main_Btn_Delete}" 
                                             Command="{Binding $parent[Window].DataContext.DeleteRuleCommand}" 
                                             CommandParameter="{Binding Rule}"
                                             Foreground="#FF453A" 
@@ -226,7 +227,13 @@
                 
                 <!-- Debug Toggle -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                    <CheckBox Content="除錯模式" IsChecked="{Binding IsDebugMode}" Foreground="White"/>
+                    <Button Content="{x:Static p:Resources.Main_Btn_Settings}"
+                            Command="{Binding OpenSettingsCommand}"
+                            FontSize="12"
+                            Padding="8,2"
+                            Background="#ffffff22"
+                            Foreground="White" />
+                    <CheckBox Content="{x:Static p:Resources.Main_Debug_DebugMode}" IsChecked="{Binding IsDebugMode}" Foreground="White"/>
                 </StackPanel>
             </Grid>
 
@@ -239,8 +246,8 @@
                  
                  <!-- Toolbar for Debug -->
                  <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="8,4" HorizontalAlignment="Right">
-                      <Button Content="複製" Command="{Binding CopyDebugLogCommand}" FontSize="12" Padding="6,2" Background="#444" Foreground="White"/>
-                      <Button Content="儲存" Command="{Binding SaveDebugLogCommand}" FontSize="12" Padding="6,2" Background="#444" Foreground="White"/>
+                      <Button Content="{x:Static p:Resources.Main_Debug_Copy}" Command="{Binding CopyDebugLogCommand}" FontSize="12" Padding="6,2" Background="#444" Foreground="White"/>
+                      <Button Content="{x:Static p:Resources.Main_Debug_Save}" Command="{Binding SaveDebugLogCommand}" FontSize="12" Padding="6,2" Background="#444" Foreground="White"/>
                  </StackPanel>
 
                  <TextBox Grid.Row="1" 
