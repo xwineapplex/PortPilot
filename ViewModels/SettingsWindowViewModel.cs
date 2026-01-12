@@ -16,10 +16,10 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
 
     private string _initialLanguage = "auto";
 
-    public ObservableCollection<LanguageOptionItem> LanguageOptions { get; } = new();
+    public ObservableCollection<LanguageOption> AvailableLanguages { get; } = new();
 
     [ObservableProperty]
-    private LanguageOptionItem? selectedLanguageOption;
+    private LanguageOption? selectedLanguage;
 
     public event Action<bool?>? RequestClose;
 
@@ -28,9 +28,9 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         _configStore = configStore;
         _showRestartPromptAsync = showRestartPromptAsync;
 
-        LanguageOptions.Add(new LanguageOptionItem("auto", Resources.Enum_Lang_Auto));
-        LanguageOptions.Add(new LanguageOptionItem("en-US", Resources.Enum_Lang_English));
-        LanguageOptions.Add(new LanguageOptionItem("zh-Hant", Resources.Enum_Lang_ZhHant));
+        AvailableLanguages.Add(new LanguageOption(Resources.Enum_Lang_Auto, "auto"));
+        AvailableLanguages.Add(new LanguageOption(Resources.Enum_Lang_English, "en-US"));
+        AvailableLanguages.Add(new LanguageOption(Resources.Enum_Lang_ZhHant, "zh-Hant"));
 
         _ = InitializeAsync();
     }
@@ -41,15 +41,15 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         {
             var config = await _configStore.LoadAsync();
             _initialLanguage = Normalize(config.Language);
-            SelectedLanguageOption = LanguageOptions.FirstOrDefault(o => o.Value == _initialLanguage)
-                                     ?? LanguageOptions.FirstOrDefault(o => o.Value == "auto")
-                                     ?? LanguageOptions.FirstOrDefault();
+            SelectedLanguage = AvailableLanguages.FirstOrDefault(o => o.CultureCode == _initialLanguage)
+                               ?? AvailableLanguages.FirstOrDefault(o => o.CultureCode == "auto")
+                               ?? AvailableLanguages.FirstOrDefault();
         }
         catch
         {
             _initialLanguage = "auto";
-            SelectedLanguageOption = LanguageOptions.FirstOrDefault(o => o.Value == "auto")
-                                     ?? LanguageOptions.FirstOrDefault();
+            SelectedLanguage = AvailableLanguages.FirstOrDefault(o => o.CultureCode == "auto")
+                               ?? AvailableLanguages.FirstOrDefault();
         }
     }
 
@@ -62,7 +62,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task SaveAsync()
     {
-        var selected = SelectedLanguageOption?.Value ?? "auto";
+        var selected = SelectedLanguage?.CultureCode ?? "auto";
         var normalized = Normalize(selected);
 
         var config = await _configStore.LoadAsync();
@@ -85,4 +85,4 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     }
 }
 
-public sealed record LanguageOptionItem(string Value, string DisplayName);
+public sealed record LanguageOption(string DisplayName, string CultureCode);

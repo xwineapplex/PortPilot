@@ -15,8 +15,8 @@
     <Grid RowDefinitions="Auto,Auto" Margin="16" RowSpacing="14">
         <StackPanel Grid.Row="0" Spacing="8">
             <TextBlock Text="{x:Static p:Resources.Settings_Label_Language}" FontWeight="SemiBold" />
-            <ComboBox ItemsSource="{Binding LanguageOptions}"
-                      SelectedItem="{Binding SelectedLanguageOption}"
+            <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                      SelectedItem="{Binding SelectedLanguage}"
                       HorizontalAlignment="Stretch">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>

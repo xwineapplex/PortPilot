@@ -35,7 +35,7 @@ public partial class SettingsWindow : Window
 
         if (result == MessageBoxWindowResult.RestartNow)
         {
-            AppRestart.TryRestart();
+            AppRestart.RestartApplication();
             return true;
         }
 

@@ -19,7 +19,6 @@ namespace PortPilot_Project
 
         public override void Initialize()
         {
-            ApplyCultureFromConfig();
             AvaloniaXamlLoader.Load(this);
         }
 
@@ -54,18 +53,18 @@ namespace PortPilot_Project
 
         public override void OnFrameworkInitializationCompleted()
         {
+            // [STEP 1] Load config & apply culture before any UI is instantiated.
+            ApplyCultureFromConfig();
+
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
                 // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
 
+                // [STEP 2] Initialize the main window (XAML parser runs here).
                 var vm = new MainWindowViewModel();
-
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = vm,
-                };
+                desktop.MainWindow = new MainWindow { DataContext = vm };
 
                 desktop.MainWindow.Show();
                 desktop.MainWindow.Activate();

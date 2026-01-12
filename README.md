@@ -14,6 +14,7 @@ PortPilot 是一個以 `.NET 8` + `Avalonia UI` 實作的跨平台螢幕訊號�
 - 偵測支援 DDC/CI 的螢幕
 - Input Source 提供常見預設值
 - USB 目標過濾 (Safe list)：僅監聽特定 VID/PID 的裝置
+- 多國語言 (I18N)：支援系統預設 / English / 繁體中文（變更後需重啟套用）
 - 系統匣 (System Tray) 常駐：
   - 關閉視窗（X）預設不會結束程式，會縮小到系統匣
   - 可透過系統匣右鍵選單快速調整「監控中 / 未監控」
@@ -42,17 +43,17 @@ PortPilot 是一個以 `.NET 8` + `Avalonia UI` 實作的跨平台螢幕訊號�
 
 ## 系統匣 (System Tray)
 
-- Tooltip：固定顯示 `PortPilot`
+- Tooltip：顯示「PortPilot is running / PortPilot 正在執行」（依語言而定）
 
 ### 左鍵點擊
 - 若主視窗為隱藏狀態：顯示主視窗並還原 (Normal state)
 - 若主視窗已顯示：將視窗帶至最上層 (Activate)
 
 ### 右鍵選單
-- `Open PortPilot`
-- `Monitoring Active (監控中)` / `Monitoring Inactive (未監控)`
+- `Open PortPilot` / `開啟 PortPilot`
+- `Monitoring Active` / `監控中`、`Monitoring Inactive` / `未監控`
   - 與主視窗的「啟用監控服務」嚴格同步
-- `Exit`
+- `Exit` / `離開`
   - 會先儲存設定，然後完全結束程序（不受「關閉視窗縮到系統匣」影響）
 
 ## Linux 設定指南 (免 Sudo)
@@ -157,6 +158,7 @@ ddcutil detect
 
 ```json
 {
+  "language": "auto",
   "rules": [
     {
       "vid": "0BDA",
@@ -184,11 +186,55 @@ ddcutil detect
 
 ### 設定值說明
 
+- `language`:
+  - `"auto"`：跟隨系統語言
+  - `"en-US"`：English
+  - `"zh-Hant"`：繁體中文
+  - 注意：語言變更後需重啟程式才會套用到 UI
 - `minimizeToTrayOnClose`:
   - `true`：按下視窗關閉鈕 (X) 時縮小到系統匣
   - `false`：按下視窗關閉鈕 (X) 時結束程式
 - `monitoringEnabled`:
   - 控制 USB 監聽服務是否啟用（會被主視窗與系統匣選單同步更新）
+
+## 多國語言 (I18N)
+
+PortPilot 使用 .NET 的 `.resx` 資源檔來提供 UI/Status/Tray 文字的多國語言。
+
+### 如何切換語言
+
+1. 打開設定視窗（主視窗右下角 `Settings` 按鈕）
+2. 在 `Language` 下拉選單選擇 `System Default / English / 繁體中文`
+3. 儲存後會提示重啟（可選擇立即重啟），重啟後生效
+
+### 資源檔位置
+
+- `Properties/Resources.resx`：預設語系 (英文 fallback)
+- `Properties/Resources.zh-Hant.resx`：繁體中文
+- `Properties/Resources.cs`：提供 XAML `{x:Static ...}` 與 C# 存取的資源 wrapper
+
+### 如何新增新語系
+
+1. 新增對應的資源檔：`Properties/Resources.<culture>.resx`
+   - 範例：日文 `Properties/Resources.ja-JP.resx`
+2. 將 `Properties/Resources.resx` 內所有 key 補齊翻譯到新語系檔
+3. 在設定頁的語言清單加入新選項（`SettingsWindowViewModel`）
+4. Build/Publish 後測試：切換語言 → 重啟 → 確認 UI/Tray/Status 文字正確
+
+> 提醒：本專案語言切換採「重啟後生效」策略，避免即時刷新成本與漏網字串。
+
+### 如何新增/修改資源字串 (Key)
+
+建議流程：
+
+1. 在 `Properties/Resources.resx` 新增 key（英文/預設文案）
+2. 在 `Properties/Resources.zh-Hant.resx` 補上同 key 翻譯
+3. 在 `Properties/Resources.cs` 新增對應的 `public static string <Key> => ...` 方便 XAML/C# 使用
+4. 代碼替換：
+  - XAML：使用 `{x:Static p:Resources.<Key>}`（`xmlns:p="clr-namespace:PortPilot_Project.Properties"`）
+  - C#：使用 `Resources.<Key>`；有參數時用 `string.Format(CultureInfo.CurrentUICulture, Resources.<Key>, ...)`
+
+命名規範：參考 [docs/NAMING_CONVENTION.md](docs/NAMING_CONVENTION.md)
 
 ## 輸入訊號代碼參考 (VCP Code 0x60)
 
@@ -224,17 +270,28 @@ PortPilot-Project/
 ├── Config/
 │   ├── AppConfig.cs
 │   └── ConfigStore.cs
+├── Properties/
+│   ├── Resources.cs
+│   ├── Resources.resx
+│   └── Resources.zh-Hant.resx
 ├── Models/
 │   └── InputSourceOption.cs
 ├── Tray/
 │   └── AvaloniaTrayController.cs
+├── Utils/
+│   └── AppRestart.cs
 ├── ViewModels/
 │   ├── MainWindowViewModel.cs
 │   ├── RuleDisplayItem.cs
+│   ├── SettingsWindowViewModel.cs
 │   └── ViewModelBase.cs
 ├── Views/
 │   ├── MainWindow.axaml
-│   └── MainWindow.axaml.cs
+│   ├── MainWindow.axaml.cs
+│   ├── SettingsWindow.axaml
+│   ├── SettingsWindow.axaml.cs
+│   ├── MessageBoxWindow.axaml
+│   └── MessageBoxWindow.axaml.cs
 ├── Windows/
 │   ├── WinMonitorController.cs
 │   └── WinUsbWatcher.cs
