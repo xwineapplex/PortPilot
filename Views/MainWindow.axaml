@@ -17,12 +17,25 @@
     </Design.DataContext>
 
     <Grid RowDefinitions="*,Auto">
+        <Grid.Styles>
+            <Style Selector="Button.SettingsBtn">
+                <Setter Property="Background" Value="#505050"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Padding" Value="8,2"/>
+            </Style>
+            <Style Selector="Button.SettingsBtn:pointerover">
+                <Setter Property="Background" Value="#606060"/>
+            </Style>
+        </Grid.Styles>
         <!-- Main Content Area -->
-        <Grid Grid.Row="0" ColumnDefinitions="320,*">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
 
             <!-- Sidebar (Column 0) -->
             <!-- Background 改用動態系統筆刷，深色模式下會變成舒適的深灰色 -->
             <Border Grid.Column="0" 
+                    MinWidth="280"
+                    MaxWidth="420"
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" 
                     BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" 
                     BorderThickness="0,0,1,0">
@@ -109,7 +122,7 @@
                                             <TextBlock Text="{x:Static p:Resources.Main_Step3_Title}" FontWeight="Bold" Foreground="#007ACC"/>
                                         </StackPanel>
 
-                                        <Grid ColumnDefinitions="Auto,*,92" RowDefinitions="Auto,Auto" RowSpacing="10">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
                                             <!-- Row 0: Added -->
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static p:Resources.Main_Label_OnAdded}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <ComboBox Grid.Row="0" Grid.Column="1" 
@@ -227,12 +240,9 @@
                 
                 <!-- Debug Toggle -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                    <Button Content="{x:Static p:Resources.Main_Btn_Settings}"
-                            Command="{Binding OpenSettingsCommand}"
-                            FontSize="12"
-                            Padding="8,2"
-                            Background="#ffffff22"
-                            Foreground="White" />
+                     <Button Classes="SettingsBtn"
+                             Content="{x:Static p:Resources.Main_Btn_Settings}"
+                             Command="{Binding OpenSettingsCommand}" />
                     <CheckBox Content="{x:Static p:Resources.Main_Debug_DebugMode}" IsChecked="{Binding IsDebugMode}" Foreground="White"/>
                 </StackPanel>
             </Grid>
