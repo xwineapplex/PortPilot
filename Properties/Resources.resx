@@ -30,6 +30,7 @@
   <data name="Enum_InputSource_HDMI1" xml:space="preserve"><value>HDMI 1</value></data>
   <data name="Enum_InputSource_HDMI2" xml:space="preserve"><value>HDMI 2</value></data>
   <data name="Enum_InputSource_VGA" xml:space="preserve"><value>VGA (D-Sub)</value></data>
+  <data name="Enum_InputSource_NoAction" xml:space="preserve"><value>No action</value></data>
 
   <data name="Main_Title" xml:space="preserve"><value>PortPilot</value></data>
   <data name="Main_Step1_Title" xml:space="preserve"><value>Target Monitor</value></data>
@@ -95,6 +96,7 @@
   <data name="Msg_Error_NoValidMonitorSelected" xml:space="preserve"><value>No valid monitor selected (DDC/CI monitor not detected).</value></data>
   <data name="Msg_Error_SelectedUsbMissingVidPid" xml:space="preserve"><value>Selected USB device does not have VID/PID.</value></data>
   <data name="Msg_Error_InputSourceZero" xml:space="preserve"><value>Input source is 0. Please choose a valid input source.</value></data>
+  <data name="Msg_Error_RuleAtLeastOneActionRequired" xml:space="preserve"><value>At least one action is required to save this rule.</value></data>
 
   <data name="Msg_Status_Saved" xml:space="preserve"><value>Saved: {0}</value></data>
   <data name="Msg_Status_Opened" xml:space="preserve"><value>Opened: {0}</value></data>
@@ -112,6 +114,7 @@
 
   <data name="Msg_Error_SelectMonitorFirst" xml:space="preserve"><value>Please select a target monitor first (Step 1).</value></data>
   <data name="Msg_Error_InvalidInputSourceOption" xml:space="preserve"><value>Invalid input source option.</value></data>
+  <data name="Msg_Error_NoActionToTest" xml:space="preserve"><value>No action selected. Nothing to test.</value></data>
   <data name="Msg_Status_TestSwitchingTo" xml:space="preserve"><value>Testing switch to: {0} (0x{1:X2})</value></data>
   <data name="Msg_Status_CommandSent" xml:space="preserve"><value>Command sent.</value></data>
   <data name="Msg_Error_Prefix" xml:space="preserve"><value>Error: {0}</value></data>

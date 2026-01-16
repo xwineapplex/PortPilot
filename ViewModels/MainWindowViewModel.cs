@@ -102,14 +102,9 @@ public partial class MainWindowViewModel : ViewModelBase
         Dispatcher.UIThread.Post(() => AddRuleFromSelectionCommand.NotifyCanExecuteChanged());
     }
 
-    public IReadOnlyList<InputSourceOption> InputSourceOptions { get; } = new[]
-    {
-        new InputSourceOption(Resources.Enum_InputSource_DisplayPort1, 0x0F),
-        new InputSourceOption(Resources.Enum_InputSource_DisplayPort2, 0x10),
-        new InputSourceOption(Resources.Enum_InputSource_HDMI1, 0x11),
-        new InputSourceOption(Resources.Enum_InputSource_HDMI2, 0x12),
-        new InputSourceOption(Resources.Enum_InputSource_VGA, 0x01),
-    };
+    public IReadOnlyList<InputSourceOption> InputSourceOptions { get; }
+
+    public IReadOnlyList<InputSourceOption> ActionInputSourceOptions { get; }
 
     [ObservableProperty]
     private InputSourceOption? selectedInputSourceOption;
@@ -127,6 +122,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
+        InputSourceOptions = new[]
+        {
+            new InputSourceOption(Resources.Enum_InputSource_DisplayPort1, 0x0F),
+            new InputSourceOption(Resources.Enum_InputSource_DisplayPort2, 0x10),
+            new InputSourceOption(Resources.Enum_InputSource_HDMI1, 0x11),
+            new InputSourceOption(Resources.Enum_InputSource_HDMI2, 0x12),
+            new InputSourceOption(Resources.Enum_InputSource_VGA, 0x01),
+        };
+
+        ActionInputSourceOptions = new[]
+        {
+            new InputSourceOption(Resources.Enum_InputSource_NoAction, 0x00),
+        }.Concat(InputSourceOptions).ToList();
+
         if (OperatingSystem.IsWindows())
         {
             _monitorController = new WinMonitorController();
@@ -321,8 +330,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string ResolveInputLabel(ushort? code)
     {
-        if (code is null)
-            return "";
+        if (code is null || code == 0)
+            return Resources.Enum_InputSource_NoAction;
         return InputSourceOptions.FirstOrDefault(o => o.Code == code.Value)?.Name
             ?? $"0x{code.Value:X2}";
     }
@@ -378,13 +387,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var addedCode = OnAddedInputSourceOption?.Code ?? InputSource;
         var removedCode = OnRemovedInputSourceOption?.Code ?? (ushort)0;
+        var addedNoAction = addedCode == 0;
+        var removedNoAction = removedCode == 0;
 
-        if (addedCode == 0)
+        if (addedNoAction && removedNoAction)
         {
-            Status = Resources.Msg_Error_InputSourceZero;
-            Log("AddRule aborted: InputSource is 0");
+            await ShowNoActionRulePromptAsync();
+            Log("AddRule aborted: both actions are no-op");
             return;
-         }
+        }
 
          var existing = Rules.FirstOrDefault(r => r.Matches(SelectedUsbDevice.Vid, SelectedUsbDevice.Pid));
          if (existing is null)
@@ -393,18 +404,25 @@ public partial class MainWindowViewModel : ViewModelBase
              {
                  Vid = SelectedUsbDevice.Vid,
                  Pid = SelectedUsbDevice.Pid,
-                 OnAdded = new UsbEventAction { MonitorId = SelectedMonitor.Id, InputSource = addedCode },
-                 OnRemoved = removedCode == 0 ? null : new UsbEventAction { MonitorId = SelectedMonitor.Id, InputSource = removedCode },
+                 OnAdded = addedNoAction ? null : new UsbEventAction { MonitorId = SelectedMonitor.Id, InputSource = addedCode },
+                 OnRemoved = removedNoAction ? null : new UsbEventAction { MonitorId = SelectedMonitor.Id, InputSource = removedCode },
              };
              Rules.Add(existing);
          }
          else
          {
-            existing.OnAdded ??= new UsbEventAction();
-            existing.OnAdded.MonitorId = SelectedMonitor.Id;
-            existing.OnAdded.InputSource = addedCode;
+            if (addedNoAction)
+            {
+                existing.OnAdded = null;
+            }
+            else
+            {
+                existing.OnAdded ??= new UsbEventAction();
+                existing.OnAdded.MonitorId = SelectedMonitor.Id;
+                existing.OnAdded.InputSource = addedCode;
+            }
 
-            if (removedCode != 0)
+            if (!removedNoAction)
             {
                 existing.OnRemoved ??= new UsbEventAction();
                 existing.OnRemoved.MonitorId = SelectedMonitor.Id;
@@ -421,6 +439,22 @@ public partial class MainWindowViewModel : ViewModelBase
          Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Status_RuleSet, SelectedUsbDevice.Vid, SelectedUsbDevice.Pid);
          Log("AddRule: done");
      }
+
+    private async Task ShowNoActionRulePromptAsync()
+    {
+        var owner = MainWindow.Current;
+        if (owner is null)
+        {
+            Status = Resources.Msg_Error_RuleAtLeastOneActionRequired;
+            return;
+        }
+
+        await MessageBoxWindow.ShowOkAsync(
+            owner,
+            Resources.Common_Error,
+            Resources.Msg_Error_RuleAtLeastOneActionRequired,
+            Resources.Common_Ok);
+    }
 
     private bool CanAddRuleFromSelection() => SelectedUsbDevice is not null && SelectedMonitor is not null;
 
@@ -532,6 +566,12 @@ public partial class MainWindowViewModel : ViewModelBase
         if (option is null)
         {
             Status = Resources.Msg_Error_InvalidInputSourceOption;
+            return;
+        }
+
+        if (option.Code == 0)
+        {
+            Status = Resources.Msg_Error_NoActionToTest;
             return;
         }
 

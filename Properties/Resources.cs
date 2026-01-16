@@ -34,6 +34,7 @@ public static class Resources
     public static string Enum_InputSource_HDMI1 => Get(nameof(Enum_InputSource_HDMI1));
     public static string Enum_InputSource_HDMI2 => Get(nameof(Enum_InputSource_HDMI2));
     public static string Enum_InputSource_VGA => Get(nameof(Enum_InputSource_VGA));
+    public static string Enum_InputSource_NoAction => Get(nameof(Enum_InputSource_NoAction));
 
     public static string Main_Title => Get(nameof(Main_Title));
     public static string Main_Step1_Title => Get(nameof(Main_Step1_Title));
@@ -117,9 +118,12 @@ public static class Resources
 
     public static string Msg_Error_SelectMonitorFirst => Get(nameof(Msg_Error_SelectMonitorFirst));
     public static string Msg_Error_InvalidInputSourceOption => Get(nameof(Msg_Error_InvalidInputSourceOption));
+    public static string Msg_Error_NoActionToTest => Get(nameof(Msg_Error_NoActionToTest));
     public static string Msg_Status_TestSwitchingTo => Get(nameof(Msg_Status_TestSwitchingTo));
     public static string Msg_Status_CommandSent => Get(nameof(Msg_Status_CommandSent));
     public static string Msg_Error_Prefix => Get(nameof(Msg_Error_Prefix));
+
+    public static string Msg_Error_RuleAtLeastOneActionRequired => Get(nameof(Msg_Error_RuleAtLeastOneActionRequired));
 
     public static string Msg_Status_RuleSet => Get(nameof(Msg_Status_RuleSet));
     public static string Msg_Status_RuleDeleted => Get(nameof(Msg_Status_RuleDeleted));

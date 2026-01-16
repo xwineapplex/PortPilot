@@ -54,4 +54,30 @@ public partial class MessageBoxWindow : Window
 
         return MessageBoxWindowResult.Ok;
     }
+
+    public static async Task<MessageBoxWindowResult> ShowOkAsync(
+        Window owner,
+        string title,
+        string message,
+        string okText)
+    {
+        var win = new MessageBoxWindow
+        {
+            Title = title,
+        };
+
+        win.MessageText.Text = message;
+
+        win.OkButton.Content = okText;
+        win.RestartButton.IsVisible = false;
+
+        win._tcs = new TaskCompletionSource<MessageBoxWindowResult>();
+
+        await win.ShowDialog(owner);
+
+        if (win._tcs.Task.IsCompleted)
+            return await win._tcs.Task;
+
+        return MessageBoxWindowResult.Ok;
+    }
 }

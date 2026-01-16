@@ -127,7 +127,7 @@
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static p:Resources.Main_Label_OnAdded}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <ComboBox Grid.Row="0" Grid.Column="1" 
                                                       HorizontalAlignment="Stretch"
-                                                      ItemsSource="{Binding InputSourceOptions}" 
+                                                      ItemsSource="{Binding ActionInputSourceOptions}" 
                                                       SelectedItem="{Binding OnAddedInputSourceOption}">
                                                  <ComboBox.ItemTemplate>
                                                     <DataTemplate>
@@ -147,7 +147,7 @@
                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static p:Resources.Main_Label_OnRemoved}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <ComboBox Grid.Row="1" Grid.Column="1" 
                                                       HorizontalAlignment="Stretch"
-                                                      ItemsSource="{Binding InputSourceOptions}" 
+                                                      ItemsSource="{Binding ActionInputSourceOptions}" 
                                                       SelectedItem="{Binding OnRemovedInputSourceOption}">
                                                  <ComboBox.ItemTemplate>
                                                     <DataTemplate>
