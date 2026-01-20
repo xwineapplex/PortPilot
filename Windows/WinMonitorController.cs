@@ -59,7 +59,7 @@ public sealed class WinMonitorController : IMonitorController
         if (!OperatingSystem.IsWindows())
             return Task.CompletedTask;
 
-        // monitorId format: "<HMONITOR_HEX>:<index>" from GetMonitorsAsync.
+        // Use monitorId format "<HMONITOR_HEX>:<index>" from GetMonitorsAsync.
         if (!TryParseMonitorId(monitorId, out var hMonitorHex, out var physicalIndex))
             throw new ArgumentException(Resources.Msg_Error_InvalidMonitorIdFormat, nameof(monitorId));
 
@@ -84,11 +84,11 @@ public sealed class WinMonitorController : IMonitorController
 
                 var pm = physical[physicalIndex];
 
-                // VCP code 0x60 = Input Source
+                // Use VCP code 0x60 for Input Source.
                 if (!Native.SetVCPFeature(pm.hPhysicalMonitor, 0x60, sourceCode))
                     throw new Win32Exception(Marshal.GetLastWin32Error());
 
-                return false; // stop enumeration
+                return false; // Stop enumeration.
             }
             finally
             {
@@ -140,7 +140,7 @@ public sealed class WinMonitorController : IMonitorController
 
             public string GetDescription()
             {
-                // Some drivers deliver trailing nulls; normalize.
+                // Normalize trailing nulls from some drivers.
                 return (szPhysicalMonitorDescription ?? string.Empty).TrimEnd('\0').Trim();
             }
         }

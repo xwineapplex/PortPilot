@@ -5,7 +5,7 @@
   
     <Application.Styles>
         <FluentTheme />
-        <!-- Change: Include DataGrid styles. Required for DataGrid visibility. -->
+        <!-- Include DataGrid styles to ensure visibility. -->
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
     </Application.Styles>
 </Application>

@@ -21,11 +21,11 @@ public sealed class LinuxMonitorController : IMonitorController
 
         try
         {
-            // Run ddcutil detect
+            // Run ddcutil detect.
             var output = await RunDdcUtilAsync("detect", cancellationToken);
             
-            // Parse output
-            // Example output:
+            // Parse output.
+            // Match output like:
             // Display 1
             //    I2C bus:  /dev/i2c-1
             //    Model:    DELL U2412M
@@ -52,12 +52,12 @@ public sealed class LinuxMonitorController : IMonitorController
                 }
                 else if (trimmed.StartsWith("I2C bus:"))
                 {
-                    // /dev/i2c-1
+                    // Use path like /dev/i2c-1.
                     var parts = trimmed.Split(':');
                     if (parts.Length > 1)
                     {
-                        // We use the bus number as ID because it's more stable for ddcutil --bus
-                        // Extract number from /dev/i2c-1 -> 1
+                        // Use bus number as ID for stable ddcutil --bus.
+                        // Extract number from /dev/i2c-1 as 1.
                         var busPath = parts[1].Trim();
                         var match = Regex.Match(busPath, @"i2c-(\d+)");
                         if (match.Success)
@@ -96,8 +96,8 @@ public sealed class LinuxMonitorController : IMonitorController
 
         try
         {
-            // monitorId is the bus number
-            // ddcutil setvcp 60 <value> --bus <bus>
+            // Use bus number as monitorId.
+            // Run ddcutil setvcp 60 <value> --bus <bus>.
             await RunDdcUtilAsync($"setvcp 60 {sourceCode} --bus {monitorId}", cancellationToken);
         }
         catch (Exception ex)

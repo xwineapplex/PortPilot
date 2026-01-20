@@ -35,7 +35,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool isDebugMode;
 
-    // Replace the monitoring flag ObservableProperty + partial hook with an explicit property.
+    // Use an explicit property for monitoring state.
 
     private bool _isMonitoringEnabled;
     public bool IsMonitoringEnabled
@@ -57,7 +57,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public string DebugLogText => GetDebugLogText();
 
-    // New UI selections for connect/disconnect actions
+    // Store UI selections for connect/disconnect actions.
     [ObservableProperty]
     private InputSourceOption? onAddedInputSourceOption;
 
@@ -165,25 +165,25 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _usbWatcher.DeviceChanged += (_, e) =>
         {
-            // Hard reject: when monitoring is disabled, ignore any late/racing events.
+            // Ignore late events when monitoring is disabled.
             if (!IsMonitoringEnabled)
                 return;
 
-            // WMI events come from a non-UI thread.
+            // Handle WMI events from a non-UI thread.
             Dispatcher.UIThread.Post(async () =>
             {
-                // Double-check after marshaling to UI thread.
+                // Recheck after marshaling to UI thread.
                 if (!IsMonitoringEnabled)
                     return;
 
                 Log($"USB {e.ChangeType} Name='{e.Device.Name}' Vid={e.Device.Vid ?? "null"} Pid={e.Device.Pid ?? "null"}");
                 Log($"USB DeviceId='{e.Device.DeviceId}'");
 
-                // Only keep the raw event list in debug mode.
+                // Keep raw event list only in debug mode.
                 if (IsDebugMode)
                     RecentUsbEvents.Insert(0, e.Device);
 
-                // Update targets immediately (no debounce).
+                // Update targets immediately without debounce.
                 DiffUpdateUsbTargets(e.Device);
 
                 var deviceLabel = e.Device.Name ?? e.Device.DeviceId;
@@ -197,7 +197,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         await RefreshMonitorsAsync();
 
-        // Ensure we have usable defaults before any rule creation.
+        // Ensure usable defaults before creating any rules.
         if (SelectedMonitor is null && Monitors.Count > 0)
             SelectedMonitor = Monitors[0];
         if (InputSource == 0)
@@ -215,7 +215,7 @@ public partial class MainWindowViewModel : ViewModelBase
                                    ?? InputSourceOptions.Skip(1).FirstOrDefault()
                                    ?? InputSourceOptions.FirstOrDefault();
 
-        // Apply persisted monitoring state last (after config load).
+        // Apply persisted monitoring state after config load.
         IsMonitoringEnabled = _config.MonitoringEnabled;
 
         Log($"InitializeAsync done: Monitors={Monitors.Count}, SelectedMonitorId='{SelectedMonitor?.Id ?? "null"}', InputSource=0x{InputSource:X2}");
@@ -227,13 +227,13 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             try
             {
-                // Reset / restart semantics.
+                // Restart watcher cleanly.
                 _usbWatcher.Stop();
 
-                // Reset history then repopulate from a single scan (for UI list correction only).
+                // Reset history and repopulate from a single scan for UI correction.
                 _recentUsbForTargets.Clear();
 
-                // Also rebuild the UI list from scratch to reflect the scan.
+                // Rebuild the UI list from scratch to reflect the scan.
                 UsbTargets.Clear();
 
                 try
@@ -270,7 +270,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             try
             {
-                // Start -> Stop semantics (Stop is idempotent).
+                // Stop watcher safely (idempotent).
                 _usbWatcher.Stop();
                 Status = Resources.Msg_Status_MonitoringStopped;
                 Log("USB watcher stopped (disabled)");
@@ -282,7 +282,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
 
-        // Persist immediately, but keep Status as the service state.
+        // Persist immediately and keep Status as service state.
         _config.MonitoringEnabled = enabled;
         await SaveConfigAsync(updateStatus: false);
     }
@@ -688,7 +688,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 _recentUsbForTargets.RemoveLast();
         }
 
-        // Build a desired set of VID/PID -> representative device.
+        // Build desired set of VID/PID to representative device.
         var desired = new List<UsbDeviceInfo>();
         foreach (var d in _recentUsbForTargets)
         {
@@ -708,7 +708,7 @@ public partial class MainWindowViewModel : ViewModelBase
             desired.Add(d);
         }
 
-        // Diff update: remove missing
+        // Remove missing targets.
         for (var i = UsbTargets.Count - 1; i >= 0; i--)
         {
             var cur = UsbTargets[i];
@@ -719,7 +719,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
 
-        // Add new
+        // Add new targets.
         foreach (var d in desired)
         {
             if (UsbTargets.Any(x => string.Equals(x.Vid, d.Vid, StringComparison.OrdinalIgnoreCase)

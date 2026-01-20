@@ -10,7 +10,7 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
     Title="{x:Static p:Resources.Main_Title}">
-        <!-- 已移除強制背景色，現在會自動適應系統深色/淺色主題 -->
+        <!-- Allow background to follow system light/dark theme. -->
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
@@ -28,11 +28,11 @@
                 <Setter Property="Background" Value="#606060"/>
             </Style>
         </Grid.Styles>
-        <!-- Main Content Area -->
+        <!-- Define main content area. -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
 
-            <!-- Sidebar (Column 0) -->
-            <!-- Background 改用動態系統筆刷，深色模式下會變成舒適的深灰色 -->
+            <!-- Define sidebar (column 0). -->
+            <!-- Use dynamic system brush; show comfortable dark gray in dark mode. -->
             <Border Grid.Column="0" 
                     MinWidth="280"
                     MaxWidth="420"
@@ -42,9 +42,9 @@
                 <Grid RowDefinitions="*,Auto" Margin="12">
                     <ScrollViewer Grid.Row="0">
                         <StackPanel Spacing="16">
-                            <!-- Step 1: Monitor -->
+                            <!-- Show step 1: monitor. -->
                             <StackPanel Spacing="8">
-                                <!-- 卡片背景改用 AltHighBrush，淺色是白，深色是黑/深灰 -->
+                                <!-- Use AltHighBrush for card background; white in light mode, dark in dark mode. -->
                                 <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
                                         CornerRadius="6" Padding="12" BoxShadow="0 1 3 0 #20000000">
                                     <StackPanel Spacing="10">
@@ -58,13 +58,13 @@
                                                   HorizontalAlignment="Stretch">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
-                                                    <!-- 移除強制黑色，讓它自動適應 -->
+                                                    <!-- Allow text color to follow the theme. -->
                                                     <TextBlock Text="{Binding Name}"/>
                                                 </DataTemplate>
                                             </ComboBox.ItemTemplate>
                                         </ComboBox>
 
-                                        <!-- Removed the Switch Test button, simplified to only Refresh Monitor button -->
+                                        <!-- Show only the Refresh Monitor button. -->
                                         <Button Content="{x:Static p:Resources.Main_Btn_Refresh}" 
                                                 Command="{Binding RefreshMonitorsCommand}" 
                                                 HorizontalAlignment="Stretch" 
@@ -73,7 +73,7 @@
                                 </Border>
                             </StackPanel>
 
-                            <!-- Step 2: Trigger -->
+                            <!-- Show step 2: trigger. -->
                             <StackPanel Spacing="8">
                                 <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
                                         CornerRadius="6" Padding="12" BoxShadow="0 1 3 0 #20000000">
@@ -92,7 +92,7 @@
                                             <ListBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Spacing="2">
-                                                        <!-- 移除強制顏色，改用 Opacity 來做層級區分 -->
+                                                        <!-- Use opacity to indicate hierarchy. -->
                                                         <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="12"/>
                                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                                             <TextBlock Text="{Binding Vid}" FontSize="11" Opacity="0.6"/>
@@ -112,7 +112,7 @@
                                 </Border>
                             </StackPanel>
 
-                            <!-- Step 3: Actions -->
+                            <!-- Show step 3: actions. -->
                             <StackPanel Spacing="8">
                                 <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
                                         CornerRadius="6" Padding="12" BoxShadow="0 1 3 0 #20000000">
@@ -123,7 +123,7 @@
                                         </StackPanel>
 
                                         <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
-                                            <!-- Row 0: Added -->
+                                            <!-- Label row 0: added. -->
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static p:Resources.Main_Label_OnAdded}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <ComboBox Grid.Row="0" Grid.Column="1" 
                                                       HorizontalAlignment="Stretch"
@@ -143,7 +143,7 @@
                                                     CommandParameter="{Binding OnAddedInputSourceOption}"
                                                     ToolTip.Tip="{x:Static p:Resources.Main_Tooltip_TestInputSource}"/>
 
-                                            <!-- Row 1: Removed -->
+                                            <!-- Label row 1: removed. -->
                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static p:Resources.Main_Label_OnRemoved}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <ComboBox Grid.Row="1" Grid.Column="1" 
                                                       HorizontalAlignment="Stretch"
@@ -167,7 +167,7 @@
                                 </Border>
                             </StackPanel>
 
-                            <!-- Add Rule Button -->
+                            <!-- Show Add Rule button. -->
                                 <Button Content="{x:Static p:Resources.Main_Btn_AddRule}" 
                                     Command="{Binding AddRuleFromSelectionCommand}" 
                                     HorizontalAlignment="Stretch" 
@@ -179,7 +179,7 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- Bottom Functional Area -->
+                    <!-- Show bottom actions. -->
                     <StackPanel Grid.Row="1" Margin="0,12,0,0">
                         <CheckBox Content="{x:Static p:Resources.Main_Check_EnableMonitoring}" IsChecked="{Binding IsMonitoringEnabled}"/>
                         <CheckBox Content="{x:Static p:Resources.Main_Check_MinimizeToTray}" IsChecked="{Binding MinimizeToTrayOnClose}" Margin="0,6,0,0"/>
@@ -187,17 +187,17 @@
                 </Grid>
             </Border>
 
-            <!-- Content Area (Column 1) -->
+            <!-- Define content area (column 1). -->
             <Grid Grid.Column="1" RowDefinitions="Auto,*" Margin="20">
                 
-                <!-- Header -->
+                <!-- Show header. -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
                     <TextBlock Grid.Column="0" Text="{x:Static p:Resources.Main_Header_ActiveRules}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Foreground="#007ACC"/>
                     <Button Grid.Column="1" Content="{x:Static p:Resources.Main_Btn_OpenConfigFolder}" Command="{Binding OpenConfigFolderCommand}" Padding="8,4"/>
                 </Grid>
                 
-                <!-- DataGrid -->
-                <!-- 移除了 Background="White" 和 Foreground="Black"，現在表格會自動黑底白字 -->
+                <!-- Show rules grid. -->
+                <!-- Rely on theme colors for grid background and foreground. -->
                 <DataGrid Grid.Row="1" 
                           ItemsSource="{Binding RulesDisplay}" 
                           AutoGenerateColumns="False" 
@@ -222,7 +222,7 @@
                                             Background="Transparent" 
                                             BorderThickness="0"
                                             HorizontalAlignment="Center"/>
-                                            <!-- 深色模式下，稍微調亮一點的紅色比較好讀 (#FF453A) -->
+                                            <!-- Use a brighter red in dark mode for readability (#FF453A). -->
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -231,14 +231,14 @@
             </Grid>
         </Grid>
 
-        <!-- Bottom Status & Debug -->
+        <!-- Show status and debug area. -->
         <StackPanel Grid.Row="1" Background="#007ACC">
-            <!-- Status Bar -->
+            <!-- Show status bar. -->
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="12,6">
-                <!-- Status text -->
+                <!-- Show status text. -->
                 <TextBlock Grid.Column="0" Text="{Binding Status}" Foreground="White" FontWeight="SemiBold"/>
                 
-                <!-- Debug Toggle -->
+                <!-- Show debug toggle. -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
                      <Button Classes="SettingsBtn"
                              Content="{x:Static p:Resources.Main_Btn_Settings}"
@@ -247,14 +247,14 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Debug Window (Collapsible) -->
+            <!-- Show debug window when enabled. -->
             <Grid IsVisible="{Binding IsDebugMode}" Background="#2D2D2D" Height="150">
                  <Grid.RowDefinitions>
                      <RowDefinition Height="Auto"/>
                      <RowDefinition Height="*"/>
                  </Grid.RowDefinitions>
                  
-                 <!-- Toolbar for Debug -->
+                 <!-- Show debug toolbar. -->
                  <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="8,4" HorizontalAlignment="Right">
                       <Button Content="{x:Static p:Resources.Main_Debug_Copy}" Command="{Binding CopyDebugLogCommand}" FontSize="12" Padding="6,2" Background="#444" Foreground="White"/>
                       <Button Content="{x:Static p:Resources.Main_Debug_Save}" Command="{Binding SaveDebugLogCommand}" FontSize="12" Padding="6,2" Background="#444" Foreground="White"/>

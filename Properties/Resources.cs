@@ -10,7 +10,7 @@ public static class Resources
         typeof(Resources).Assembly);
 
     /// <summary>
-    /// Optional override culture. When null, ResourceManager uses CurrentUICulture.
+    /// Override resource culture; use CurrentUICulture when null.
     /// </summary>
     public static CultureInfo? Culture { get; set; }
 

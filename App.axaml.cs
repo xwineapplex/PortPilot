@@ -46,23 +46,22 @@ namespace PortPilot_Project
             }
             catch
             {
-                // Ignore culture/config failures and fall back to system culture + neutral resources.
+                // Ignore culture/config failures and fall back to system culture and neutral resources.
                 PortPilot_Project.Properties.Resources.Culture = null;
             }
         }
 
         public override void OnFrameworkInitializationCompleted()
         {
-            // [STEP 1] Load config & apply culture before any UI is instantiated.
+            // Load config and apply culture before instantiating any UI.
             ApplyCultureFromConfig();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-                // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
+                // Avoid duplicate validation between Avalonia and the CommunityToolkit.
                 DisableAvaloniaDataAnnotationValidation();
 
-                // [STEP 2] Initialize the main window (XAML parser runs here).
+                // Initialize the main window; the XAML parser runs here.
                 var vm = new MainWindowViewModel();
                 desktop.MainWindow = new MainWindow { DataContext = vm };
 
@@ -83,11 +82,11 @@ namespace PortPilot_Project
 
         private void DisableAvaloniaDataAnnotationValidation()
         {
-            // Get an array of plugins to remove
+            // Get data validation plugins to remove.
             var dataValidationPluginsToRemove =
                 BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
 
-            // remove each entry found
+            // Remove each plugin found.
             foreach (var plugin in dataValidationPluginsToRemove)
             {
                 BindingPlugins.DataValidators.Remove(plugin);

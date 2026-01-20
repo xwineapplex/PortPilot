@@ -61,16 +61,16 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
                 line = line.Trim();
                 if (string.IsNullOrEmpty(line)) continue;
 
-                // Header line starts with UDEV or KERNEL
+                // Detect header lines starting with UDEV or KERNEL.
                 if (line.StartsWith("UDEV") || line.StartsWith("KERNEL"))
                 {
-                    // Process previous event if any
+                    // Process previous event when present.
                     if (inEvent)
                     {
                         ProcessEvent(currentEvent);
                     }
 
-                    // Start new event
+                    // Start new event.
                     currentEvent.Clear();
                     inEvent = true;
                     continue;
@@ -88,7 +88,7 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
         }
         catch (OperationCanceledException)
         {
-            // Ignore
+            // Ignore cancellation.
         }
         catch (Exception ex)
         {
@@ -101,8 +101,8 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
         if (!properties.TryGetValue("ACTION", out var action)) return;
         if (!properties.TryGetValue("DEVPATH", out var devPath)) return;
 
-        // Filter by DEVTYPE to avoid duplicate events for interfaces if possible
-        // If DEVTYPE is missing, we proceed (safer to process than to miss)
+        // Filter by DEVTYPE to avoid interface duplicates.
+        // Proceed when DEVTYPE is missing to avoid missing events.
         if (properties.TryGetValue("DEVTYPE", out var devType) && devType != "usb_device")
             return;
 
@@ -140,8 +140,8 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
                 }
                 else
                 {
-                    // Fallback: Try to match by content if properties are available
-                    // This handles cases where the initial scan registered the device with a slightly different path
+                    // Fall back to VID/PID matching when properties are available.
+                    // Handle cases where the initial scan used a different path.
                     if (properties.TryGetValue("ID_VENDOR_ID", out var vid) &&
                         properties.TryGetValue("ID_MODEL_ID", out var pid))
                     {
@@ -149,38 +149,31 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
                         var vidUpper = vid.ToUpper();
                         var pidUpper = pid.ToUpper();
 
-                        // Try to find a matching device in known devices
+                        // Find matching device in known devices.
                         foreach (var kvp in _knownDevices)
                         {
                             if (kvp.Value.Vid == vidUpper && kvp.Value.Pid == pidUpper)
                             {
-                                // If we have a serial, match it. If not, we might be guessing but it's better than missing the event.
-                                // If the known device has a serial in its DeviceId, we should check it.
+                                // Match by serial when available.
+                                // Check serial in the known DeviceId when present.
                                 if (serial != null && kvp.Value.DeviceId.Contains(serial))
                                 {
                                     info = kvp.Value;
                                     keyToRemove = kvp.Key;
                                     break;
                                 }
-                                // If we don't have serial in event, or known device doesn't have it...
-                                // If we only have one device with this VID/PID, assume it's the one.
+                                // When serial is unavailable, keep the first VID/PID match.
                                 if (info == null)
                                 {
                                     info = kvp.Value;
                                     keyToRemove = kvp.Key;
-                                }
-                                else
-                                {
-                                    // Ambiguous match (multiple devices with same VID/PID), and we couldn't match serial.
-                                    // If we found a second match, and we haven't confirmed by serial, maybe we should be careful.
-                                    // But for now, let's just take the first one or the one we found.
                                 }
                             }
                         }
 
                         if (info == null)
                         {
-                             // Still not found, but we have enough info to report a removal
+                             // Fall back to reporting removal with current properties.
                              var name = properties.TryGetValue("ID_MODEL", out var model) ? model : Resources.Common_Unknown;
                              var vendor = properties.TryGetValue("ID_VENDOR", out var v) ? v : "";
                              if (!string.IsNullOrEmpty(vendor)) name = $"{vendor} {name}";
@@ -213,8 +206,8 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
 
         try
         {
-            // Use udevadm info --export-db to get the exact state as udev sees it.
-            // This ensures DEVPATH matches what udevadm monitor reports.
+            // Use udevadm info --export-db to read the udev state.
+            // Match DEVPATH with what udevadm monitor reports.
             var startInfo = new ProcessStartInfo
             {
                 FileName = "udevadm",
@@ -230,7 +223,7 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
             var output = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
 
-            // Output is blocks separated by blank lines
+            // Split output into blocks separated by blank lines.
             var blocks = output.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
             
             foreach (var block in blocks)
@@ -255,16 +248,16 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
                     }
                 }
 
-                // We need a valid path and it must be a USB device
+                // Require a valid path and a USB device.
                 if (devPath == null) continue;
                 
-                // Check subsystem
+                // Check subsystem.
                 if (!properties.TryGetValue("SUBSYSTEM", out var subsystem) || subsystem != "usb") continue;
                 
-                // Check devtype to avoid interfaces
+                // Check devtype to avoid interfaces.
                 if (properties.TryGetValue("DEVTYPE", out var devType) && devType != "usb_device") continue;
 
-                // Must have VID/PID
+                // Require VID/PID.
                 if (!properties.TryGetValue("ID_VENDOR_ID", out var vid)) continue;
                 if (!properties.TryGetValue("ID_MODEL_ID", out var pid)) continue;
 
@@ -272,7 +265,7 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
                 var vendor = properties.TryGetValue("ID_VENDOR", out var v) ? v : "";
                 if (!string.IsNullOrEmpty(vendor)) name = $"{vendor} {name}";
 
-                // Use DEVPATH from properties if available, as that's what monitor uses
+                // Use DEVPATH from properties when available.
                 if (properties.TryGetValue("DEVPATH", out var dp)) devPath = dp;
 
                 var serial = properties.TryGetValue("ID_SERIAL_SHORT", out var s) ? s : devPath;

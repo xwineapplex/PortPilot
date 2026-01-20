@@ -7,18 +7,17 @@ public sealed class AppConfig
     public List<UsbTriggerRule> Rules { get; set; } = new();
 
     /// <summary>
-    /// UI language.
-    /// Values: "auto", "en-US", "zh-Hant".
+    /// Specify UI language as "auto", "en-US", or "zh-Hant".
     /// </summary>
     public string Language { get; set; } = "auto";
 
-    // Optional: last selections for convenience
+    // Store last selections for convenience.
     public string? LastSelectedMonitorId { get; set; }
     public ushort? LastInputSource { get; set; }
 
     public bool MinimizeToTrayOnClose { get; set; } = true;
 
-    // Persist whether USB monitoring service is enabled.
+    // Persist whether USB monitoring is enabled.
     public bool MonitoringEnabled { get; set; } = true;
 }
 
@@ -27,11 +26,11 @@ public sealed class UsbTriggerRule
     public string? Vid { get; set; }
     public string? Pid { get; set; }
 
-    // New: explicit actions per event type.
+    // Use explicit actions per event type.
     public UsbEventAction? OnAdded { get; set; }
     public UsbEventAction? OnRemoved { get; set; }
 
-    // Back-compat: older config shape.
+    // Support older config shape for backward compatibility.
     public UsbTriggerAction? Action { get; set; }
 
     public bool Matches(string? vid, string? pid)
@@ -59,7 +58,7 @@ public sealed class UsbEventAction
     public ushort InputSource { get; set; }
 }
 
-// Back-compat model
+// Represent legacy config shape for backward compatibility.
 public sealed class UsbTriggerAction
 {
     public string? MonitorId { get; set; }

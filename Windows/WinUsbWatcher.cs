@@ -26,8 +26,8 @@ public sealed class WinUsbWatcher : IUsbWatcher
 
         try
         {
-            // Captures a broad set of USB PnP events using WMI.
-            // polling interval (WITHIN 1) means it checks every 1 second.
+            // Capture a broad set of USB PnP events using WMI.
+            // Set polling interval (WITHIN 1) to check every second.
             _creationWatcher = new ManagementEventWatcher(new WqlEventQuery(
                 "SELECT * FROM __InstanceCreationEvent WITHIN 1 WHERE TargetInstance ISA 'Win32_PnPEntity'"));
             _creationWatcher.EventArrived += (_, e) => Raise(e, UsbDeviceChangeType.Added);
@@ -42,7 +42,7 @@ public sealed class WinUsbWatcher : IUsbWatcher
         }
         catch (Exception)
         {
-            // Stop and rethrow to let the caller (ViewModel) handle or log the start failure.
+            // Stop and rethrow to let the caller handle the start failure.
             Stop();
             throw;
         }
@@ -53,9 +53,8 @@ public sealed class WinUsbWatcher : IUsbWatcher
         var devices = new List<UsbDeviceInfo>();
         if (!OperatingSystem.IsWindows()) return devices;
 
-        // Removed the internal try-catch swallowing. 
-        // Any WMI errors will now bubble up to InitializeAsync in the ViewModel where they are logged.
-        // Added 'Present = TRUE' to ensure we only get currently plugged-in devices.
+        // Allow WMI errors to bubble up to InitializeAsync for logging.
+        // Query only currently plugged-in devices with Present = TRUE.
         using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity WHERE DeviceID LIKE 'USB%' AND Present = TRUE");
         using var collection = searcher.Get();
 
@@ -65,7 +64,7 @@ public sealed class WinUsbWatcher : IUsbWatcher
             var name = device["Name"]?.ToString();
             var (vid, pid) = ParseVidPid(deviceId);
 
-            // Only add devices where we successfully parsed VIP/PID
+            // Add devices only when VID/PID parsing succeeds.
             if (vid != null && pid != null)
             {
                 devices.Add(new UsbDeviceInfo(deviceId, name, vid, pid));
@@ -108,7 +107,7 @@ public sealed class WinUsbWatcher : IUsbWatcher
 
             var (vid, pid) = ParseVidPid(deviceId);
 
-            // Optimization: Filter out events for internal hubs/controllers that don't have VID/PID
+            // Filter out internal hubs/controllers without VID/PID.
             if (vid == null || pid == null)
                 return;
 
@@ -117,13 +116,13 @@ public sealed class WinUsbWatcher : IUsbWatcher
         }
         catch
         {
-            // Swallow watcher thread exceptions to prevent crashing the application background thread
+            // Swallow watcher thread exceptions to avoid crashing the background thread.
         }
     }
 
     private static (string? Vid, string? Pid) ParseVidPid(string deviceId)
     {
-        // Typical: USB\VID_046D&PID_C534\...
+        // Match device IDs like USB\VID_046D&PID_C534\...
         var vidMatch = Regex.Match(deviceId, @"VID_([0-9A-Fa-f]{4})");
         var pidMatch = Regex.Match(deviceId, @"PID_([0-9A-Fa-f]{4})");
         return (
