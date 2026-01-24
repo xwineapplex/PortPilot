@@ -14,6 +14,7 @@
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 
 		<PublishSingleFile>true</PublishSingleFile>
+		<ApplicationIcon>Assets\PortPilot.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">

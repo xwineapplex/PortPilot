@@ -8,7 +8,7 @@
         MinWidth="720" MinHeight="550"
         x:Class="PortPilot_Project.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/PortPilot.ico"
     Title="{x:Static p:Resources.Main_Title}">
         <!-- Allow background to follow system light/dark theme. -->
 
