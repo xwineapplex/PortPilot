@@ -1,162 +1,155 @@
 # PortPilot
 
-PortPilot 是一個以 `.NET 8` + `Avalonia UI` 實作的跨平台螢幕訊號切換工具。
-透過監聽 USB 裝置連線/斷線事件作為觸發，透過 DDC/CI 協定自動切換螢幕的輸入訊號源 (VCP `0x60`)。
+English | [繁體中文](README_CHT.md)
 
-典型應用場景：搭配 USB Switch / KVM，在切換不同電腦時自動讓螢幕訊號跟著切換到對應的輸入源。
+## Overview
 
-## 功能
+PortPilot is a cross-platform display input switcher built with .NET 8 and Avalonia UI.
+It watches USB device connect/disconnect events and switches monitor input sources
+via DDC/CI (VCP 0x60).
 
-- 監聽 USB 裝置插入/移除事件 (依據 VID/PID 判斷)
-- 雙向觸發動作：
-  - 裝置 **Connected (Added)** 時切換至輸入源 A
-  - 裝置 **Disconnected (Removed)** 時切換至輸入源 B
-- 偵測支援 DDC/CI 的螢幕
-- Input Source 提供常見預設值
-- USB 目標過濾 (Safe list)：僅監聽特定 VID/PID 的裝置
-- 多國語言 (I18N)：支援系統預設 / English / 繁體中文（變更後需重啟套用）
-- 系統匣 (System Tray) 常駐：
-  - 關閉視窗（X）預設不會結束程式，會縮小到系統匣
-  - 可透過系統匣右鍵選單快速調整「監控中 / 未監控」
-- `Debug mode` 開關：
-  - 開啟時才記錄 raw USB events 與 Debug log
-  - Debug log 可儲存至檔案 (`debug-log.txt`)
+Typical use case: pair it with a USB switch or KVM so your monitor input follows
+the active computer automatically.
 
-## 平台支援 / 需求
+## Features
+
+- Monitor USB device add/remove events (by VID/PID)
+- Two-way triggers:
+  - Switch to input A when the device is connected (Added)
+  - Switch to input B when the device is disconnected (Removed)
+- Detect monitors that support DDC/CI
+- Common input source presets
+- USB target filtering (safe list) for specific VID/PID devices
+- Localization (I18N): System default / English / Traditional Chinese (restart required)
+- System tray resident mode:
+  - Closing the window (X) minimizes to the tray by default
+  - Tray menu can quickly toggle Monitoring Active / Inactive
+- Debug mode:
+  - Records raw USB events and debug logs only when enabled
+  - Debug logs can be saved to a file (debug-log.txt)
+
+## Supported Platforms & Requirements
 
 ### Windows
-- 使用 `dxva2.dll` 進行 DDC/CI 通訊
-- 使用 WMI 監聽 USB 事件
-- 需確認螢幕支援 DDC/CI 並在螢幕 OSD 設定中開啟
+- Uses dxva2.dll for DDC/CI communication
+- Uses WMI to watch USB events
+- Ensure your monitor supports DDC/CI and enable it in the monitor OSD
 
 ### Linux
-- 使用 `ddcutil` 進行 DDC/CI 通訊
-- 使用 `udevadm` 監聽 USB 事件
-- **系統需求**：需安裝 `ddcutil` 並設定權限 (詳見下方 Linux 設定指南)
+- Uses ddcutil for DDC/CI communication
+- Uses udevadm to watch USB events
+- Requirement: install ddcutil and configure permissions (see Linux setup)
 
-#### Linux 系統匣相容性說明
-- KDE Plasma：原生支援 (StatusNotifierItem)
-- GNOME：通常需要安裝 AppIndicator / KStatusNotifierItem 類型的 Shell Extension 才能顯示系統匣圖示
-- Wayland：依桌面環境與 DBus 支援狀況而定
+#### Linux System Tray Compatibility
+- KDE Plasma: native support (StatusNotifierItem)
+- GNOME: typically requires AppIndicator/KStatusNotifierItem shell extensions
+- Wayland: depends on the desktop environment and DBus support
 
-> 維持跨平台單一路徑的系統匣實作；在部分環境下系統匣圖示可能會出現空白佔位，但右鍵選單與功能仍可正常運作。
+> The app uses a single cross-platform tray implementation. In some environments
+> the tray icon may appear as an empty placeholder, but the right-click menu and
+> functionality still work.
 
-## 系統匣 (System Tray)
+## System Tray
 
-- Tooltip：顯示「PortPilot is running / PortPilot 正在執行」（依語言而定）
+- Tooltip: "PortPilot is running" (localized)
 
-### 左鍵點擊
-- 若主視窗為隱藏狀態：顯示主視窗並還原 (Normal state)
-- 若主視窗已顯示：將視窗帶至最上層 (Activate)
+### Left Click
+- If the main window is hidden: restore and show it
+- If already shown: bring it to the front (activate)
 
-### 右鍵選單
-- `Open PortPilot` / `開啟 PortPilot`
-- `Monitoring Active` / `監控中`、`Monitoring Inactive` / `未監控`
-  - 與主視窗的「啟用監控服務」嚴格同步
-- `Exit` / `離開`
-  - 會先儲存設定，然後完全結束程序（不受「關閉視窗縮到系統匣」影響）
+### Right-Click Menu
+- Open PortPilot
+- Monitoring Active / Monitoring Inactive
+  - Strictly synced with the "Enable monitoring" toggle in the main window
+- Exit
+  - Saves settings, then fully quits (not affected by "minimize to tray on close")
 
-## Linux 設定指南 (免 Sudo)
+## Linux Setup (Non-root)
 
-在 Linux 系統中，控制顯示器（透過 DDC/CI 協定）需要讀寫 `/dev/i2c-*` 裝置。為了安全性，這些裝置預設僅限 Root 存取。本指南將引導你完成環境設定，讓 PortPilot 軟體能在一般使用者權限下執行。
+On Linux, controlling monitors via DDC/CI requires read/write access to /dev/i2c-*.
+These devices are root-only by default. Follow the steps below to enable access
+for your user account.
 
-### 1. 安裝必要套件
+### 1. Install required packages
 
-在 Fedora / RHEL 系統上，請執行：
+Fedora / RHEL:
 
 ```bash
 sudo dnf install ddcutil i2c-tools
 ```
 
-在 Debian / Ubuntu 系統上：
+Debian / Ubuntu:
 
 ```bash
 sudo apt install ddcutil i2c-tools
 ```
 
-### 2. 載入 I2C 核心模組
+### 2. Load the I2C kernel module
 
-DDC/CI 通訊依賴 `i2c-dev` 核心模組。
-
-立即載入：
+Load immediately:
 
 ```bash
 sudo modprobe i2c-dev
 ```
 
-設定開機自動載入：
+Enable at boot:
 
 ```bash
 echo "i2c-dev" | sudo tee /etc/modules-load.d/i2c.conf
 ```
 
-### 3. 設定使用者群組與權限
-
-Fedora 等發行版預設可能不會建立 `i2c` 群組，我們需要手動建立並將目前使用者加入。
-
-建立群組並加入使用者：
+### 3. Create the i2c group and add your user
 
 ```bash
-# 建立系統群組 i2c
 sudo groupadd --system i2c
-
-# 將目前使用者 ($USER) 加入 i2c 群組
 sudo usermod -aG i2c $USER
 ```
 
-### 4. 設定 udev 規則 (關鍵步驟)
+### 4. Add udev rules (required)
 
-建立一個自定義規則，讓系統在發現 I2C 裝置時，自動將權限分配給 `i2c` 群組。
-
-建立規則檔案：
+Create the rule file:
 
 ```bash
 sudo nano /etc/udev/rules.d/45-ddcutil-i2c.rules
 ```
 
-在檔案中貼入以下內容：
+Add the content below:
 
 ```
-# 讓 i2c 群組的使用者可以讀寫 i2c 裝置
 KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"
 ```
 
-套用規則：
+Reload rules:
 
 ```bash
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
-### 5. 套用變更與驗證
+### 5. Apply changes and verify
 
-**重要：重新登入**
+Important: log out and log in again (or reboot) for group changes to apply.
 
-使用者群組的變更（usermod）需要登出並重新登入（或重啟電腦）後才會生效。
+Verify:
 
-驗證步驟：
+1. Run `groups` and confirm `i2c` is listed.
+2. Run `ddcutil detect` without sudo. If you see monitor info with no permission
+   errors, the setup is complete.
 
-1. 檢查群組：輸入 `groups`，確認清單中包含 `i2c`。
-2. 無 Sudo 測試：執行以下指令，若能看到螢幕資訊且無權限錯誤即成功。
+## Usage
 
-```bash
-ddcutil detect
-```
+1. Launch the app and pick a monitor from the Monitor dropdown
+2. Set the input to switch to when the device is CONNECTED (Added)
+3. Set the input to switch to when the device is DISCONNECTED (Removed)
+4. Choose USB targets (safe list) to watch, such as a USB switch or hub
+5. Click Add/Update rule
+6. Click Save (or rely on auto-save after Add/Update rule)
 
-## 使用方式
+## Configuration File
 
-1. 啟動程式，在 `Monitor` 下拉選單選擇要控制的螢幕
-2. 在 `When device CONNECTED (Added) switch to` 設定裝置連線時要切換的輸入源
-3. 在 `When device DISCONNECTED (Removed) switch to` 設定裝置斷線時要切換的輸入源
-4. 在 `USB targets (safe list)` 區塊，選擇要監聽的 USB 裝置 (例如 USB switch / hub)
-5. 按 `Add/Update rule` 建立或更新規則
-6. 按 `Save` (或由 `Add/Update rule` 自動儲存)
+The configuration is stored as JSON and saved automatically.
 
-## 設定檔
-
-設定檔為 JSON 格式，程式會自動儲存。
-
-```json
+```jsonc
 {
   "language": "auto",
   "rules": [
@@ -180,65 +173,26 @@ ddcutil detect
 }
 ```
 
-> **注意**：
-> - Windows `monitorId` 格式範例：`"10001:0"` (HMONITOR:Index)
-> - Linux `monitorId` 格式範例：`"1"` (I2C Bus Number)
+Notes:
+- Windows monitorId format: "10001:0" (HMONITOR:Index)
+- Linux monitorId format: "1" (I2C bus number)
 
-### 設定值說明
+### Settings
 
-- `language`:
-  - `"auto"`：跟隨系統語言
-  - `"en-US"`：English
-  - `"zh-Hant"`：繁體中文
-  - 注意：語言變更後需重啟程式才會套用到 UI
-- `minimizeToTrayOnClose`:
-  - `true`：按下視窗關閉鈕 (X) 時縮小到系統匣
-  - `false`：按下視窗關閉鈕 (X) 時結束程式
-- `monitoringEnabled`:
-  - 控制 USB 監聽服務是否啟用（會被主視窗與系統匣選單同步更新）
+- language:
+  - "auto": follow system language
+  - "en-US": English
+  - "zh-Hant": Traditional Chinese
+  - Restart required to apply language changes
+- minimizeToTrayOnClose:
+  - true: closing the window (X) minimizes to tray
+  - false: closing the window exits the app
+- monitoringEnabled:
+  - controls whether the USB monitoring service is active
 
-## 多國語言 (I18N)
+## Input Source Codes (VCP 0x60)
 
-PortPilot 使用 .NET 的 `.resx` 資源檔來提供 UI/Status/Tray 文字的多國語言。
-
-### 如何切換語言
-
-1. 打開設定視窗（主視窗右下角 `Settings` 按鈕）
-2. 在 `Language` 下拉選單選擇 `System Default / English / 繁體中文`
-3. 儲存後會提示重啟（可選擇立即重啟），重啟後生效
-
-### 資源檔位置
-
-- `Properties/Resources.resx`：預設語系 (英文 fallback)
-- `Properties/Resources.zh-Hant.resx`：繁體中文
-- `Properties/Resources.cs`：提供 XAML `{x:Static ...}` 與 C# 存取的資源 wrapper
-
-### 如何新增新語系
-
-1. 新增對應的資源檔：`Properties/Resources.<culture>.resx`
-   - 範例：日文 `Properties/Resources.ja-JP.resx`
-2. 將 `Properties/Resources.resx` 內所有 key 補齊翻譯到新語系檔
-3. 在設定頁的語言清單加入新選項（`SettingsWindowViewModel`）
-4. Build/Publish 後測試：切換語言 → 重啟 → 確認 UI/Tray/Status 文字正確
-
-> 提醒：本專案語言切換採「重啟後生效」策略，避免即時刷新成本與漏網字串。
-
-### 如何新增/修改資源字串 (Key)
-
-建議流程：
-
-1. 在 `Properties/Resources.resx` 新增 key（英文/預設文案）
-2. 在 `Properties/Resources.zh-Hant.resx` 補上同 key 翻譯
-3. 在 `Properties/Resources.cs` 新增對應的 `public static string <Key> => ...` 方便 XAML/C# 使用
-4. 代碼替換：
-  - XAML：使用 `{x:Static p:Resources.<Key>}`（`xmlns:p="clr-namespace:PortPilot_Project.Properties"`）
-  - C#：使用 `Resources.<Key>`；有參數時用 `string.Format(CultureInfo.CurrentUICulture, Resources.<Key>, ...)`
-
-命名規範：參考 [docs/NAMING_CONVENTION.md](docs/NAMING_CONVENTION.md)
-
-## 輸入訊號代碼參考 (VCP Code 0x60)
-
-| 代碼 (Hex) | 意義 |
+| Code (Hex) | Meaning |
 | :-- | :-- |
 | 0x0F | DisplayPort 1 |
 | 0x10 | DisplayPort 2 |
@@ -246,67 +200,22 @@ PortPilot 使用 .NET 的 `.resx` 資源檔來提供 UI/Status/Tray 文字的多
 | 0x12 | HDMI 2 |
 | 0x01 | D-Sub (VGA) |
 
-## 專案結構
+## Localization (I18N)
 
-```
-PortPilot-Project/
-├── PortPilot-Project.csproj
-├── PortPilot-Project.slnx
-├── README.md
-├── LICENSE.txt
-├── .gitignore
-├── .gitattributes
-├── app.manifest
-├── Program.cs
-├── App.axaml
-├── App.axaml.cs
-├── Assets/
-│   └── avalonia-logo.ico
-├── Abstractions/
-│   ├── IMonitorController.cs
-│   ├── IUsbWatcher.cs
-│   ├── Models.cs
-│   └── ITrayController.cs
-├── Config/
-│   ├── AppConfig.cs
-│   └── ConfigStore.cs
-├── Properties/
-│   ├── Resources.cs
-│   ├── Resources.resx
-│   └── Resources.zh-Hant.resx
-├── Models/
-│   └── InputSourceOption.cs
-├── Tray/
-│   └── AvaloniaTrayController.cs
-├── Utils/
-│   └── AppRestart.cs
-├── ViewModels/
-│   ├── MainWindowViewModel.cs
-│   ├── RuleDisplayItem.cs
-│   ├── SettingsWindowViewModel.cs
-│   └── ViewModelBase.cs
-├── Views/
-│   ├── MainWindow.axaml
-│   ├── MainWindow.axaml.cs
-│   ├── SettingsWindow.axaml
-│   ├── SettingsWindow.axaml.cs
-│   ├── MessageBoxWindow.axaml
-│   └── MessageBoxWindow.axaml.cs
-├── Windows/
-│   ├── WinMonitorController.cs
-│   └── WinUsbWatcher.cs
-└── Linux/
-    ├── LinuxMonitorController.cs
-    └── LinuxUsbWatcher.cs
-```
+1. Open Settings (bottom-right button in the main window)
+2. Choose Language: System Default / English / Traditional Chinese
+3. Save and restart when prompted
 
-## 實作細節
+## License
 
-- **Windows**:
-  - `WinUsbWatcher`: 使用 WMI 監聽 `Win32_PnPEntity` 事件。
-  - `WinMonitorController`: 使用 Win32 API (`dxva2.dll`) 控制螢幕。
-- **Linux**:
-  - `LinuxUsbWatcher`: 使用 `udevadm info` 進行初始掃描，並搭配 `udevadm monitor` 監聽 USB 插拔事件，確保裝置路徑一致性。
-  - `LinuxMonitorController`: 封裝 `ddcutil` 指令來偵測螢幕與設定 VCP。
-- **共用邏輯**:
-  - `MainWindowViewModel`: 負責 UI 邏輯、規則管理與跨平台介面的依賴注入。
+See [LICENSE.txt](LICENSE.txt).
+
+## Contributing / Developer Guide
+
+See [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md).
+
+## Norms & Policies
+
+- [.github/copilot-instructions.md](.github/copilot-instructions.md)
+- [docs/COMMENT_STYLE_GUIDE.md](docs/COMMENT_STYLE_GUIDE.md)
+- [docs/NAMING_CONVENTION.md](docs/NAMING_CONVENTION.md)
