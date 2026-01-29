@@ -32,6 +32,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Include=".github\upgrades\plan.md" />
+	  <None Include=".github\upgrades\tasks.md" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="11.3.9" />
 		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.9" />
 		<PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
