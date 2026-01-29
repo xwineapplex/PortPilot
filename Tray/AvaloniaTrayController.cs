@@ -98,7 +98,8 @@ public sealed class AvaloniaTrayController : ITrayController
     {
         try
         {
-            var uri = new Uri("avares://PortPilot-Project/Assets/PortPilot.ico");
+            var assemblyName = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name;
+            var uri = new Uri($"avares://{assemblyName}/Assets/PortPilot.ico");
             using var stream = AssetLoader.Open(uri);
             return new WindowIcon(stream);
         }
