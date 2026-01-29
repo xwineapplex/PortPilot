@@ -4,7 +4,7 @@ English | [繁體中文](README_CHT.md)
 
 ## Overview
 
-PortPilot is a cross-platform display input switcher built with .NET 8 and Avalonia UI.
+PortPilot is a cross-platform display input switcher built with .NET 10 and Avalonia UI.
 It watches USB device connect/disconnect events and switches monitor input sources
 via DDC/CI (VCP 0x60).
 

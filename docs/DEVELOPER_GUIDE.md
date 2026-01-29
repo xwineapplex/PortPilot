@@ -105,7 +105,12 @@ Key naming rules: see [docs/NAMING_CONVENTION.md](docs/NAMING_CONVENTION.md).
 
 ## Build & Run
 
-Prerequisite: .NET 8 SDK.
+Prerequisite: .NET 10 SDK.
+
+Primary packages:
+- Avalonia 11.3.11
+- CommunityToolkit.Mvvm 8.4.0
+- System.Management 10.0.2
 
 Typical commands:
 - dotnet restore

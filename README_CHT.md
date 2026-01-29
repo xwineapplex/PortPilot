@@ -4,7 +4,7 @@
 
 ## 簡介
 
-PortPilot 是一個以 .NET 8 + Avalonia UI 實作的跨平台螢幕訊號切換工具。
+PortPilot 是一個以 .NET 10 + Avalonia UI 實作的跨平台螢幕訊號切換工具。
 透過監聽 USB 裝置連線/斷線事件作為觸發，透過 DDC/CI 協定自動切換螢幕的輸入訊號源 (VCP 0x60)。
 
 典型應用場景：搭配 USB Switch / KVM，在切換不同電腦時自動讓螢幕訊號跟著切換到對應的輸入源。
