@@ -14,7 +14,7 @@
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 
 		<PublishSingleFile>true</PublishSingleFile>
-		<ApplicationIcon>Assets\PortPilot.ico</ApplicationIcon>
+		<ApplicationIcon>Assets/PortPilot.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
@@ -28,7 +28,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<AvaloniaResource Include="Assets\**" />
+		<AvaloniaResource Include="Assets/**" />
 	</ItemGroup>
 
 	<ItemGroup>
