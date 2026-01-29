@@ -4,20 +4,17 @@ on:
   push:
     tags:
       - 'v*'
+  # Allow manual trigger for ad-hoc runs.
+  # Use "Run workflow" in GitHub Actions without pushing tags.
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-and-release:
-    name: Build for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            rid: win-x64
-            archive_ext: zip
-          - os: ubuntu-latest
-            rid: linux-x64
-            archive_ext: tar.gz
+    name: Build All Platforms
+    runs-on: ubuntu-latest # Run all builds on Linux for speed and consistency.
 
     steps:
     - name: Checkout code
@@ -28,33 +25,57 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
-    - name: Restore Dependencies
-      run: dotnet restore PortPilot-Project.csproj -r ${{ matrix.rid }}
-
-    - name: Publish Standalone
+    # --- Windows Builds (build on Linux) ---
+    
+    # 1. Windows Standalone (include runtime)
+    # Set /p:SelfContained=true to force inclusion.
+    - name: Build Windows Standalone
       run: |
-        dotnet publish PortPilot-Project.csproj -c Release -r ${{ matrix.rid }} --self-contained true --no-restore -p:PublishSingleFile=true -p:PublishTrimmed=false -p:AssemblyName=PortPilot -o ./publish/standalone
+        dotnet publish PortPilot-Project.csproj -c Release -r win-x64 /p:SelfContained=true /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyName=PortPilot -o ./publish/win-standalone
 
-    - name: Publish Framework Dependent
+    # 2. Windows Dependent (exclude runtime)
+    # Set /p:SelfContained=false to force exclusion.
+    - name: Build Windows Dependent
       run: |
-        dotnet publish PortPilot-Project.csproj -c Release -r ${{ matrix.rid }} --self-contained false --no-restore -p:PublishSingleFile=true -p:PublishTrimmed=false -p:AssemblyName=PortPilot -o ./publish/dependent
+        dotnet publish PortPilot-Project.csproj -c Release -r win-x64 /p:SelfContained=false /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyName=PortPilot -o ./publish/win-dependent
 
+    # --- Linux Builds ---
+
+    # 3. Linux Standalone (include runtime)
+    - name: Build Linux Standalone
+      run: |
+        dotnet publish PortPilot-Project.csproj -c Release -r linux-x64 /p:SelfContained=true /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyName=PortPilot -o ./publish/linux-standalone
+
+    # 4. Linux Dependent (exclude runtime)
+    - name: Build Linux Dependent
+      run: |
+        dotnet publish PortPilot-Project.csproj -c Release -r linux-x64 /p:SelfContained=false /p:PublishSingleFile=true /p:PublishTrimmed=false /p:AssemblyName=PortPilot -o ./publish/linux-dependent
+
+    # --- Packaging (package on Linux) ---
+
+    # Use Linux zip to package Windows artifacts.
     - name: Pack Windows Archives
-      if: matrix.os == 'windows-latest'
       run: |
-        Compress-Archive -Path ./publish/standalone/* -DestinationPath ./PortPilot-${{ matrix.rid }}-standalone.zip
-        Compress-Archive -Path ./publish/dependent/* -DestinationPath ./PortPilot-${{ matrix.rid }}-dependent.zip
+        # Package from the target directory to avoid extra nesting.
+        cd ./publish/win-standalone && zip -r ../../PortPilot-win-x64-standalone.zip ./*
+        cd ../../
+        cd ./publish/win-dependent && zip -r ../../PortPilot-win-x64-dependent.zip ./*
+        cd ../../
 
+    # Use tar to package Linux artifacts.
     - name: Pack Linux Archives
-      if: matrix.os == 'ubuntu-latest'
       run: |
-        # 因為上面加了 AssemblyName=PortPilot，這裡就能正確找到檔案了
-        chmod +x ./publish/standalone/PortPilot
-        chmod +x ./publish/dependent/PortPilot
+        # Ensure executable permissions.
+        chmod +x ./publish/linux-standalone/PortPilot
+        chmod +x ./publish/linux-dependent/PortPilot
         
-        tar -czvf PortPilot-${{ matrix.rid }}-standalone.tar.gz -C ./publish/standalone PortPilot
-        tar -czvf PortPilot-${{ matrix.rid }}-dependent.tar.gz -C ./publish/dependent PortPilot
+        # Create archives.
+        tar -czvf PortPilot-linux-x64-standalone.tar.gz -C ./publish/linux-standalone .
+        tar -czvf PortPilot-linux-x64-dependent.tar.gz -C ./publish/linux-dependent .
 
+    # --- Release ---
+    # Run this step only for tags; manual runs do not create a release.
+    # Use the build steps alone when validating compilation.
     - name: Upload Release Assets
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
@@ -62,23 +83,27 @@ jobs:
         draft: true
         prerelease: false
         body: |
-          ## 🚀 PortPilot Update
+          ## 🚀 What's New / 更新內容
           
-          *(Write your changelog here...)*
+          <!-- 請在此處列出變更點 (List your changes here) -->
+          - ✨ New Features: 
+          - 🐛 Bug Fixes: 
           
           ---
-          ### 📥 下載指引 (Download Guide)
+          ### 📥 Download Guide / 下載指引
           
           **Windows Users:**
-          - 📦 `PortPilot-win-x64-standalone.zip`: **Recommended.** Download, extract, and run (includes the .NET runtime).
-          - 🔧 `PortPilot-win-x64-dependent.zip`: Requires installing the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
+          - 📦 `PortPilot-win-x64-standalone.zip`: **Recommended**. Includes .NET Runtime. (內含 Runtime，隨開即用，檔案較大)
+          - 🔧 `PortPilot-win-x64-dependent.zip`: Requires [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0). (檔案極小，需先安裝 .NET 10)
 
           **Linux Users:**
-          - 📦 `PortPilot-linux-x64-standalone.tar.gz`: **Recommended.** Includes the runtime.
-          - 🔧 `PortPilot-linux-x64-dependent.tar.gz`: Requires installing the .NET 10 runtime.
+          - 📦 `PortPilot-linux-x64-standalone.tar.gz`: **Recommended**. Includes Runtime. (內含 Runtime，檔案較大)
+          - 🔧 `PortPilot-linux-x64-dependent.tar.gz`: Requires .NET 10 Runtime. (檔案極小，需安裝 .NET 10)
 
         files: |
-          ./PortPilot-${{ matrix.rid }}-standalone.${{ matrix.archive_ext }}
-          ./PortPilot-${{ matrix.rid }}-dependent.${{ matrix.archive_ext }}
+          ./PortPilot-win-x64-standalone.zip
+          ./PortPilot-win-x64-dependent.zip
+          ./PortPilot-linux-x64-standalone.tar.gz
+          ./PortPilot-linux-x64-dependent.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
