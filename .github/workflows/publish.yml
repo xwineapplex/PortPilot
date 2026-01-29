@@ -1,0 +1,91 @@
+name: Publish PortPilot
+
+# Run only when a tag starting with "v" is pushed (for example, v1.0.0).
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          # Define the Windows build target.
+          - os: windows-latest
+            rid: win-x64
+            archive_ext: zip
+          # Define the Linux (Ubuntu) build target.
+          - os: ubuntu-latest
+            rid: linux-x64
+            archive_ext: tar.gz
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    # Build the self-contained single-file output with trimming disabled.
+    - name: Publish Standalone
+      run: |
+        dotnet publish PortPilot-Project.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o ./publish/standalone
+
+    # Build the framework-dependent single-file output.
+    - name: Publish Framework Dependent
+      run: |
+        dotnet publish PortPilot-Project.csproj -c Release -r ${{ matrix.rid }} --self-contained false -p:PublishSingleFile=true -p:PublishTrimmed=false -o ./publish/dependent
+
+    # Package artifacts on Windows using PowerShell.
+    - name: Pack Windows Archives
+      if: matrix.os == 'windows-latest'
+      run: |
+        Compress-Archive -Path ./publish/standalone/* -DestinationPath ./PortPilot-${{ matrix.rid }}-standalone.zip
+        Compress-Archive -Path ./publish/dependent/* -DestinationPath ./PortPilot-${{ matrix.rid }}-dependent.zip
+
+    # Package artifacts on Linux using tar to preserve permissions.
+    - name: Pack Linux Archives
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        # Grant execute permissions for the binaries.
+        chmod +x ./publish/standalone/PortPilot
+        chmod +x ./publish/dependent/PortPilot
+        # Create archives using tar -czvf.
+        tar -czvf PortPilot-${{ matrix.rid }}-standalone.tar.gz -C ./publish/standalone PortPilot
+        tar -czvf PortPilot-${{ matrix.rid }}-dependent.tar.gz -C ./publish/dependent PortPilot
+
+    # Upload assets and create a draft release.
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        draft: true   # Mark the release as draft and keep it private.
+        prerelease: false # Mark as prerelease only for beta tags (for example, v1.0.0-beta).
+        
+        # Populate the release notes template.
+        body: |
+          ## 🚀 PortPilot Update
+          
+          *(Write your changelog here...)*
+          
+          ---
+          ### 📥 下載指引 (Download Guide)
+          
+          **Windows Users:**
+          - 📦 `PortPilot-win-x64-standalone.zip`: **Recommended.** Download, extract, and run (includes the .NET runtime; larger file size).
+          - 🔧 `PortPilot-win-x64-dependent.zip`: Smaller file size, but requires installing the [.NET 10 Desktop Runtime].
+
+          **Linux Users:**
+          - 📦 `PortPilot-linux-x64-standalone.tar.gz`: **Recommended.** Includes the runtime; extract and run.
+          - 🔧 `PortPilot-linux-x64-dependent.tar.gz`: Requires installing the .NET 10 runtime.
+
+        files: |
+          ./PortPilot-${{ matrix.rid }}-standalone.${{ matrix.archive_ext }}
+          ./PortPilot-${{ matrix.rid }}-dependent.${{ matrix.archive_ext }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
