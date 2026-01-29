@@ -57,9 +57,10 @@ jobs:
     - name: Pack Windows Archives
       run: |
         # Package from the target directory to avoid extra nesting.
-        cd ./publish/win-standalone && zip -r ../../PortPilot-win-x64-standalone.zip ./*
+        # Exclude .pdb files using -x "*.pdb"
+        cd ./publish/win-standalone && zip -r ../../PortPilot-win-x64-standalone.zip ./* -x "*.pdb"
         cd ../../
-        cd ./publish/win-dependent && zip -r ../../PortPilot-win-x64-dependent.zip ./*
+        cd ./publish/win-dependent && zip -r ../../PortPilot-win-x64-dependent.zip ./* -x "*.pdb"
         cd ../../
 
     # Use tar to package Linux artifacts.
@@ -70,8 +71,9 @@ jobs:
         chmod +x ./publish/linux-dependent/PortPilot
         
         # Create archives.
-        tar -czvf PortPilot-linux-x64-standalone.tar.gz -C ./publish/linux-standalone .
-        tar -czvf PortPilot-linux-x64-dependent.tar.gz -C ./publish/linux-dependent .
+        # Exclude .pdb files using --exclude='*.pdb'
+        tar --exclude='*.pdb' -czvf PortPilot-linux-x64-standalone.tar.gz -C ./publish/linux-standalone .
+        tar --exclude='*.pdb' -czvf PortPilot-linux-x64-dependent.tar.gz -C ./publish/linux-dependent .
 
     # --- Release ---
     # Run this step only for tags; manual runs do not create a release.
