@@ -46,4 +46,8 @@
 
 		<PackageReference Include="System.Management" Version="10.0.2" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="docs\images\" />
+	</ItemGroup>
 </Project>

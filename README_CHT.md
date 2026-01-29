@@ -9,6 +9,8 @@ PortPilot 是一個以 .NET 10 + Avalonia UI 實作的跨平台螢幕訊號切�
 
 典型應用場景：搭配 USB Switch / KVM，在切換不同電腦時自動讓螢幕訊號跟著切換到對應的輸入源。
 
+![PortPilot Screenshot](docs/images/Portpilot_fullscreen.png)
+
 ## 功能
 
 - 監聽 USB 裝置插入/移除事件 (依據 VID/PID 判斷)

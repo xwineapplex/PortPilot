@@ -11,6 +11,8 @@ via DDC/CI (VCP 0x60).
 Typical use case: pair it with a USB switch or KVM so your monitor input follows
 the active computer automatically.
 
+![PortPilot Screenshot](docs/images/Portpilot_fullscreen.png)
+
 ## Features
 
 - Monitor USB device add/remove events (by VID/PID)
