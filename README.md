@@ -2,6 +2,17 @@
 
 English | [繁體中文](README_CHT.md)
 
+## Acknowledgement
+
+PortPilot was inspired by haimgel's open-source project [display-switch](https://github.com/haimgel/display-switch). 
+
+This is an unofficial project and is not affiliated with the original author/project. 
+
+I decided to build this because I'm not used to terminal-based interfaces and wanted a GUI version. I also encourage you to visit haimgel's project page to see the original work.
+
+Also thanks to [Avalonia UI](https://github.com/AvaloniaUI/Avalonia). 
+I used their open-source project and the community-licensed Visual Studio extension to build the GUI part.
+
 ## Overview
 
 PortPilot is a cross-platform display input switcher built with .NET 10 and Avalonia UI.

@@ -2,6 +2,18 @@
 
 [English](README.md) | 繁體中文
 
+## 致謝
+
+本專案的靈感來源來自 haimgel 的開源專案 [display-switch](https://github.com/haimgel/display-switch)。
+
+本專案為非官方實作，與原作者/原專案無關。
+
+因為我不習慣終端機介面，想要一個 GUI 版本，所以才決定動手做。
+推薦大家到的 haimgel 專案頁面去看看原作。
+
+另外也感謝 [Avalonia UI](https://github.com/AvaloniaUI/Avalonia)。
+我使用了他們的開源專案以及社群授權版的 VS 擴充套件來完成 GUI 的部分。
+
 ## 簡介
 
 PortPilot 是一個以 .NET 10 + Avalonia UI 實作的跨平台螢幕訊號切換工具。
