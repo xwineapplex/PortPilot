@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -32,6 +33,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly LinkedList<UsbDeviceInfo> _recentUsbForTargets = new();
     private const int RecentUsbForTargetsLimit = 50;
 
+    // Cancel previous toggle when monitoring state changes rapidly.
+    private CancellationTokenSource? _monitoringToggleCts;
+
     [ObservableProperty]
     private bool isDebugMode;
 
@@ -45,8 +49,16 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             if (SetProperty(ref _isMonitoringEnabled, value))
             {
+                // Cancel any in-flight toggle to avoid interleaved start/stop.
+                _monitoringToggleCts?.Cancel();
+                _monitoringToggleCts?.Dispose();
+                var cts = new CancellationTokenSource();
+                _monitoringToggleCts = cts;
+
                 _ = Dispatcher.UIThread.InvokeAsync(async () =>
                 {
+                    if (cts.Token.IsCancellationRequested)
+                        return;
                     await SetMonitoringEnabledAsync(value);
                 });
             }
@@ -55,7 +67,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<string> DebugLog { get; } = new();
 
-    public string DebugLogText => GetDebugLogText();
+    // Cache the debug log text; invalidate when entries change.
+    private string? _debugLogTextCache;
+
+    public string DebugLogText => _debugLogTextCache ??= BuildDebugLogText();
 
     // Store UI selections for connect/disconnect actions.
     [ObservableProperty]
@@ -82,6 +97,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (DebugLog.Count > 200)
                 DebugLog.RemoveAt(DebugLog.Count - 1);
 
+            _debugLogTextCache = null;
             OnPropertyChanged(nameof(DebugLogText));
         });
     }
@@ -160,6 +176,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task InitializeAsync()
     {
+        try
+        {
         Log("InitializeAsync start");
         await LoadConfigAsync();
 
@@ -169,29 +187,36 @@ public partial class MainWindowViewModel : ViewModelBase
             if (!IsMonitoringEnabled)
                 return;
 
-            // Handle WMI events from a non-UI thread.
-            Dispatcher.UIThread.Post(async () =>
+            // Marshal to UI thread; use InvokeAsync to avoid async void.
+            _ = Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                // Recheck after marshaling to UI thread.
-                if (!IsMonitoringEnabled)
-                    return;
+                try
+                {
+                    // Recheck after marshaling to UI thread.
+                    if (!IsMonitoringEnabled)
+                        return;
 
-                Log($"USB {e.ChangeType} Name='{e.Device.Name}' Vid={e.Device.Vid ?? "null"} Pid={e.Device.Pid ?? "null"}");
-                Log($"USB DeviceId='{e.Device.DeviceId}'");
+                    Log($"USB {e.ChangeType} Name='{e.Device.Name}' Vid={e.Device.Vid ?? "null"} Pid={e.Device.Pid ?? "null"}");
+                    Log($"USB DeviceId='{e.Device.DeviceId}'");
 
-                // Keep raw event list only in debug mode.
-                if (IsDebugMode)
-                    RecentUsbEvents.Insert(0, e.Device);
+                    // Keep raw event list only in debug mode.
+                    if (IsDebugMode)
+                        RecentUsbEvents.Insert(0, e.Device);
 
-                // Update targets immediately without debounce.
-                DiffUpdateUsbTargets(e.Device);
+                    // Update targets immediately without debounce.
+                    DiffUpdateUsbTargets(e.Device);
 
-                var deviceLabel = e.Device.Name ?? e.Device.DeviceId;
-                Status = e.ChangeType == UsbDeviceChangeType.Added
-                    ? string.Format(CultureInfo.CurrentUICulture, Resources.Msg_DeviceConnected, deviceLabel)
-                    : string.Format(CultureInfo.CurrentUICulture, Resources.Msg_DeviceDisconnected, deviceLabel);
+                    var deviceLabel = e.Device.Name ?? e.Device.DeviceId;
+                    Status = e.ChangeType == UsbDeviceChangeType.Added
+                        ? string.Format(CultureInfo.CurrentUICulture, Resources.Msg_DeviceConnected, deviceLabel)
+                        : string.Format(CultureInfo.CurrentUICulture, Resources.Msg_DeviceDisconnected, deviceLabel);
 
-                await ApplyRulesAsync(e.ChangeType, e.Device);
+                    await ApplyRulesAsync(e.ChangeType, e.Device);
+                }
+                catch (Exception ex)
+                {
+                    Log($"USB event handler failed: {ex}");
+                }
             });
         };
 
@@ -219,6 +244,12 @@ public partial class MainWindowViewModel : ViewModelBase
         IsMonitoringEnabled = _config.MonitoringEnabled;
 
         Log($"InitializeAsync done: Monitors={Monitors.Count}, SelectedMonitorId='{SelectedMonitor?.Id ?? "null"}', InputSource=0x{InputSource:X2}");
+        }
+        catch (Exception ex)
+        {
+            Log($"InitializeAsync failed: {ex}");
+            Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_Prefix, ex.Message);
+        }
     }
 
     private async Task SetMonitoringEnabledAsync(bool enabled)
@@ -624,14 +655,14 @@ public partial class MainWindowViewModel : ViewModelBase
          }
      }
 
-    private string GetDebugLogText() => string.Join(Environment.NewLine, DebugLog.Reverse());
+    private string BuildDebugLogText() => string.Join(Environment.NewLine, DebugLog.Reverse());
     
     [RelayCommand]
     private async Task CopyDebugLogAsync()
     {
         try
         {
-            var text = GetDebugLogText();
+            var text = BuildDebugLogText();
             var clipboard = PortPilot_Project.Views.MainWindow.Current?.Clipboard;
             if (clipboard is null)
             {
@@ -658,7 +689,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 dir = System.IO.Directory.GetCurrentDirectory();
 
             var path = System.IO.Path.Combine(dir, "debug-log.txt");
-            await System.IO.File.WriteAllTextAsync(path, GetDebugLogText());
+            await System.IO.File.WriteAllTextAsync(path, BuildDebugLogText());
             Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Status_DebugLogSaved, path);
         }
         catch (Exception ex)
