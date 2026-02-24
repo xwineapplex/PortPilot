@@ -11,92 +11,98 @@ namespace PortPilot_Project.Windows;
 
 public sealed class WinMonitorController : IMonitorController
 {
-    public Task<IReadOnlyList<MonitorInfo>> GetMonitorsAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<MonitorInfo>> GetMonitorsAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!OperatingSystem.IsWindows())
-            return Task.FromResult<IReadOnlyList<MonitorInfo>>(Array.Empty<MonitorInfo>());
+            return Array.Empty<MonitorInfo>();
 
-        var result = new List<MonitorInfo>();
-
-        Native.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, (IntPtr hMon, IntPtr _, ref Native.RECT rc, IntPtr __) =>
+        // Run DDC/CI enumeration off the UI thread.
+        return await Task.Run(() =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            var result = new List<MonitorInfo>();
 
-            if (!Native.GetNumberOfPhysicalMonitorsFromHMONITOR(hMon, out var count) || count == 0)
-                return true;
-
-            var physical = new Native.PHYSICAL_MONITOR[count];
-            if (!Native.GetPhysicalMonitorsFromHMONITOR(hMon, count, physical))
-                return true;
-
-            try
+            Native.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, (IntPtr hMon, IntPtr _, ref Native.RECT rc, IntPtr __) =>
             {
-                for (var i = 0; i < physical.Length; i++)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!Native.GetNumberOfPhysicalMonitorsFromHMONITOR(hMon, out var count) || count == 0)
+                    return true;
+
+                var physical = new Native.PHYSICAL_MONITOR[count];
+                if (!Native.GetPhysicalMonitorsFromHMONITOR(hMon, count, physical))
+                    return true;
+
+                try
                 {
-                    var pm = physical[i];
-                    var id = $"{hMon.ToString("X")}:{i}";
-                    var name = pm.GetDescription();
-                    result.Add(new MonitorInfo(id, name));
+                    for (var i = 0; i < physical.Length; i++)
+                    {
+                        var pm = physical[i];
+                        var id = $"{hMon.ToString("X")}:{i}";
+                        var name = pm.GetDescription();
+                        result.Add(new MonitorInfo(id, name));
+                    }
                 }
-            }
-            finally
-            {
-                Native.DestroyPhysicalMonitors(count, physical);
-            }
+                finally
+                {
+                    Native.DestroyPhysicalMonitors(count, physical);
+                }
 
-            return true;
-        }, IntPtr.Zero);
+                return true;
+            }, IntPtr.Zero);
 
-        return Task.FromResult<IReadOnlyList<MonitorInfo>>(result);
+            return (IReadOnlyList<MonitorInfo>)result;
+        }, cancellationToken);
     }
 
-    public Task SetInputSourceAsync(string monitorId, ushort sourceCode, CancellationToken cancellationToken = default)
+    public async Task SetInputSourceAsync(string monitorId, ushort sourceCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!OperatingSystem.IsWindows())
-            return Task.CompletedTask;
+            return;
 
         // Use monitorId format "<HMONITOR_HEX>:<index>" from GetMonitorsAsync.
         if (!TryParseMonitorId(monitorId, out var hMonitorHex, out var physicalIndex))
             throw new ArgumentException(Resources.Msg_Error_InvalidMonitorIdFormat, nameof(monitorId));
 
-        Native.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, (IntPtr hMon, IntPtr _, ref Native.RECT rc, IntPtr __) =>
+        // Run DDC/CI command off the UI thread.
+        await Task.Run(() =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (!string.Equals(hMon.ToString("X"), hMonitorHex, StringComparison.OrdinalIgnoreCase))
-                return true;
-
-            if (!Native.GetNumberOfPhysicalMonitorsFromHMONITOR(hMon, out var count) || count == 0)
-                return true;
-
-            var physical = new Native.PHYSICAL_MONITOR[count];
-            if (!Native.GetPhysicalMonitorsFromHMONITOR(hMon, count, physical))
-                return true;
-
-            try
+            Native.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, (IntPtr hMon, IntPtr _, ref Native.RECT rc, IntPtr __) =>
             {
-                if (physicalIndex < 0 || physicalIndex >= physical.Length)
-                    throw new ArgumentOutOfRangeException(nameof(monitorId), Resources.Msg_Error_PhysicalMonitorIndexOutOfRange);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                var pm = physical[physicalIndex];
+                if (!string.Equals(hMon.ToString("X"), hMonitorHex, StringComparison.OrdinalIgnoreCase))
+                    return true;
 
-                // Use VCP code 0x60 for Input Source.
-                if (!Native.SetVCPFeature(pm.hPhysicalMonitor, 0x60, sourceCode))
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                if (!Native.GetNumberOfPhysicalMonitorsFromHMONITOR(hMon, out var count) || count == 0)
+                    return true;
 
-                return false; // Stop enumeration.
-            }
-            finally
-            {
-                Native.DestroyPhysicalMonitors(count, physical);
-            }
-         }, IntPtr.Zero);
+                var physical = new Native.PHYSICAL_MONITOR[count];
+                if (!Native.GetPhysicalMonitorsFromHMONITOR(hMon, count, physical))
+                    return true;
 
-        return Task.CompletedTask;
+                try
+                {
+                    if (physicalIndex < 0 || physicalIndex >= physical.Length)
+                        throw new ArgumentOutOfRangeException(nameof(monitorId), Resources.Msg_Error_PhysicalMonitorIndexOutOfRange);
+
+                    var pm = physical[physicalIndex];
+
+                    // Use VCP code 0x60 for Input Source.
+                    if (!Native.SetVCPFeature(pm.hPhysicalMonitor, 0x60, sourceCode))
+                        throw new Win32Exception(Marshal.GetLastWin32Error());
+
+                    return false; // Stop enumeration.
+                }
+                finally
+                {
+                    Native.DestroyPhysicalMonitors(count, physical);
+                }
+            }, IntPtr.Zero);
+        }, cancellationToken);
     }
 
     private static bool TryParseMonitorId(string monitorId, out string hMonitorHex, out int physicalIndex)

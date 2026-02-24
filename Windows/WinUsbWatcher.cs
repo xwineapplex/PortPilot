@@ -8,11 +8,17 @@ using PortPilot_Project.Abstractions;
 namespace PortPilot_Project.Windows;
 
 [SupportedOSPlatform("windows")]
-public sealed class WinUsbWatcher : IUsbWatcher
+public sealed partial class WinUsbWatcher : IUsbWatcher
 {
     private ManagementEventWatcher? _creationWatcher;
     private ManagementEventWatcher? _deletionWatcher;
     private bool _started;
+
+    [GeneratedRegex(@"VID_([0-9A-Fa-f]{4})")]
+    private static partial Regex VidRegex();
+
+    [GeneratedRegex(@"PID_([0-9A-Fa-f]{4})")]
+    private static partial Regex PidRegex();
 
     public event EventHandler<UsbDeviceChangedEventArgs>? DeviceChanged;
 
@@ -26,15 +32,14 @@ public sealed class WinUsbWatcher : IUsbWatcher
 
         try
         {
-            // Capture a broad set of USB PnP events using WMI.
-            // Set polling interval (WITHIN 1) to check every second.
+            // Watch USB PnP events only; filter by DeviceID prefix at WMI level.
             _creationWatcher = new ManagementEventWatcher(new WqlEventQuery(
-                "SELECT * FROM __InstanceCreationEvent WITHIN 1 WHERE TargetInstance ISA 'Win32_PnPEntity'"));
+                "SELECT * FROM __InstanceCreationEvent WITHIN 1 WHERE TargetInstance ISA 'Win32_PnPEntity' AND TargetInstance.DeviceID LIKE 'USB%'"));
             _creationWatcher.EventArrived += (_, e) => Raise(e, UsbDeviceChangeType.Added);
             _creationWatcher.Start();
 
             _deletionWatcher = new ManagementEventWatcher(new WqlEventQuery(
-                "SELECT * FROM __InstanceDeletionEvent WITHIN 1 WHERE TargetInstance ISA 'Win32_PnPEntity'"));
+                "SELECT * FROM __InstanceDeletionEvent WITHIN 1 WHERE TargetInstance ISA 'Win32_PnPEntity' AND TargetInstance.DeviceID LIKE 'USB%'"));
             _deletionWatcher.EventArrived += (_, e) => Raise(e, UsbDeviceChangeType.Removed);
             _deletionWatcher.Start();
 
@@ -123,8 +128,8 @@ public sealed class WinUsbWatcher : IUsbWatcher
     private static (string? Vid, string? Pid) ParseVidPid(string deviceId)
     {
         // Match device IDs like USB\VID_046D&PID_C534\...
-        var vidMatch = Regex.Match(deviceId, @"VID_([0-9A-Fa-f]{4})");
-        var pidMatch = Regex.Match(deviceId, @"PID_([0-9A-Fa-f]{4})");
+        var vidMatch = VidRegex().Match(deviceId);
+        var pidMatch = PidRegex().Match(deviceId);
         return (
             vidMatch.Success ? vidMatch.Groups[1].Value.ToUpperInvariant() : null,
             pidMatch.Success ? pidMatch.Groups[1].Value.ToUpperInvariant() : null);

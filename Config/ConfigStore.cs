@@ -14,6 +14,9 @@ public sealed class ConfigStore
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
+    // Serialize concurrent save operations to avoid file corruption.
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
+
     public string ConfigPath { get; }
 
     public ConfigStore(string? configPath = null)
@@ -33,12 +36,20 @@ public sealed class ConfigStore
 
     public async Task SaveAsync(AppConfig config, CancellationToken cancellationToken = default)
     {
-        var dir = Path.GetDirectoryName(ConfigPath);
-        if (!string.IsNullOrWhiteSpace(dir))
-            Directory.CreateDirectory(dir);
+        await _saveLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var dir = Path.GetDirectoryName(ConfigPath);
+            if (!string.IsNullOrWhiteSpace(dir))
+                Directory.CreateDirectory(dir);
 
-        await using var stream = File.Create(ConfigPath);
-        await JsonSerializer.SerializeAsync(stream, config, _jsonOptions, cancellationToken).ConfigureAwait(false);
+            await using var stream = File.Create(ConfigPath);
+            await JsonSerializer.SerializeAsync(stream, config, _jsonOptions, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _saveLock.Release();
+        }
     }
 
     private static string GetDefaultConfigPath()

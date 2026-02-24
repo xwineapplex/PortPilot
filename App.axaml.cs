@@ -1,5 +1,7 @@
+using System.IO;
 using System.Linq;
 using System.Globalization;
+using System.Text.Json;
 using System.Threading;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -26,7 +28,18 @@ namespace PortPilot_Project
         {
             try
             {
-                var config = new ConfigStore().LoadAsync().GetAwaiter().GetResult();
+                // Read config synchronously to avoid async-over-sync anti-pattern.
+                // Culture must be set before any UI is created.
+                var configPath = new ConfigStore().ConfigPath;
+                AppConfig? config = null;
+                if (File.Exists(configPath))
+                {
+                    var json = File.ReadAllText(configPath);
+                    var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                    config = JsonSerializer.Deserialize<AppConfig>(json, options);
+                }
+                config ??= new AppConfig();
+
                 var lang = (config.Language ?? "auto").Trim();
 
                 if (string.IsNullOrWhiteSpace(lang) || string.Equals(lang, "auto", System.StringComparison.OrdinalIgnoreCase))

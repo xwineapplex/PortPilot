@@ -293,7 +293,7 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
     public void Stop()
     {
         _cts?.Cancel();
-        
+
         if (_process != null && !_process.HasExited)
         {
             try
@@ -303,8 +303,18 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
             catch { }
         }
 
+        // Wait briefly for the read loop to finish.
+        if (_readTask is not null)
+        {
+            try { _readTask.Wait(TimeSpan.FromSeconds(2)); } catch { }
+            _readTask = null;
+        }
+
         _process?.Dispose();
         _process = null;
+
+        _cts?.Dispose();
+        _cts = null;
     }
 
     public void Dispose()
