@@ -230,3 +230,8 @@ ddcutil detect
 ## License
 
 請參見 [README.md#License](README.md#license)。
+
+## 開發與版本發佈
+
+- 開發環境、專案結構與編譯方式請參閱 [開發指南](docs/DEVELOPER_GUIDE.md)。
+- 更新版號、準備 AI 協助產生的 Release Notes，以及透過 Git tag 發佈版本的流程，請參閱 [版本發佈流程](docs/RELEASE_PROCESS.md)。

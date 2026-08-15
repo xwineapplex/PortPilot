@@ -25,6 +25,17 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
+    - name: Verify Release Metadata
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: bash
+      run: |
+        project_version="$(dotnet msbuild PortPilot-Project.csproj -getProperty:Version -nologo)"
+        if [[ "v${project_version}" != "${GITHUB_REF_NAME}" ]]; then
+          echo "Tag ${GITHUB_REF_NAME} does not match project version ${project_version}."
+          exit 1
+        fi
+        test -s ".github/release-notes/${GITHUB_REF_NAME}.md"
+
     # --- Windows Builds (build on Linux) ---
     
     # 1. Windows Standalone (include runtime)
@@ -79,29 +90,12 @@ jobs:
     # Run this step only for tags; manual runs do not create a release.
     # Use the build steps alone when validating compilation.
     - name: Upload Release Assets
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v3
       if: startsWith(github.ref, 'refs/tags/')
       with:
         draft: true
         prerelease: false
-        body: |
-          ## 🚀 What's New / 更新內容
-          
-          <!-- 請在此處列出變更點 (List your changes here) -->
-          - ✨ New Features: 
-          - 🐛 Bug Fixes: 
-          
-          ---
-          ### 📥 Download Guide / 下載指引
-          
-          **Windows Users:**
-          - 📦 `PortPilot-win-x64-standalone.zip`: **Recommended**. Includes .NET Runtime. (內含 Runtime，隨開即用，檔案較大)
-          - 🔧 `PortPilot-win-x64-dependent.zip`: Requires [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0). (檔案極小，需先安裝 .NET 10)
-
-          **Linux Users:**
-          - 📦 `PortPilot-linux-x64-standalone.tar.gz`: **Recommended**. Includes Runtime. (內含 Runtime，檔案較大)
-          - 🔧 `PortPilot-linux-x64-dependent.tar.gz`: Requires .NET 10 Runtime. (檔案極小，需安裝 .NET 10)
-
+        body_path: .github/release-notes/${{ github.ref_name }}.md
         files: |
           ./PortPilot-win-x64-standalone.zip
           ./PortPilot-win-x64-dependent.zip

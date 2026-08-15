@@ -124,8 +124,12 @@ Typical commands:
 
 ## Release / Publish
 
-Typical command:
-- dotnet publish -c Release
+GitHub Actions builds all supported release variants when a `v*` tag is pushed.
+Each tag requires a matching Markdown file under `.github/release-notes/`, and the
+workflow creates a draft GitHub Release for review.
+
+Follow [RELEASE_PROCESS.md](RELEASE_PROCESS.md) to update the version, prepare
+AI-assisted release notes, validate the build, and publish a release safely.
 
 ## Norms & Policies
 

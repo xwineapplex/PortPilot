@@ -226,6 +226,8 @@ See [LICENSE.txt](LICENSE.txt).
 ## Contributing / Developer Guide
 
 See [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md).
+For tagged releases and AI-assisted release notes, follow
+[docs/RELEASE_PROCESS.md](docs/RELEASE_PROCESS.md).
 
 ## Norms & Policies
 
