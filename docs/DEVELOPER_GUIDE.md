@@ -108,9 +108,9 @@ Key naming rules: see [docs/NAMING_CONVENTION.md](docs/NAMING_CONVENTION.md).
 Prerequisite: .NET 10 SDK.
 
 Primary packages:
-- Avalonia 11.3.11
-- CommunityToolkit.Mvvm 8.4.0
-- System.Management 10.0.2
+- Avalonia 11.3.20 (DataGrid 11.3.13)
+- CommunityToolkit.Mvvm 8.4.2
+- System.Management 10.0.11
 
 Typical commands:
 - dotnet restore
