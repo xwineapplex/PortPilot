@@ -22,6 +22,11 @@ does not match the `Version` property in `PortPilot-Project.csproj`.
 6. Commit the version, implementation, documentation, workflow, and release notes.
 7. Review the commit before creating the release tag.
 
+For bilingual release notes, keep the English and Traditional Chinese sections
+separate. Use an English-only heading and content for the English section, followed
+by a Chinese-only heading and content for the Chinese section. Do not combine both
+languages in an individual localized subsection heading.
+
 Codex can prepare the version-specific release notes from the Git diff and commit
 history. The workflow does not call an AI service; it publishes the reviewed
 Markdown file committed to the repository.
