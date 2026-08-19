@@ -1,0 +1,23 @@
+monitor will print the received events for:
+UDEV - the event which udev sends out after rule processing
+
+UDEV  [123.456789] add /devices/pci0000:00/usb1/1-2 (usb)
+ACTION=add
+DEVPATH=/devices/pci0000:00/usb1/1-2
+SUBSYSTEM=usb
+DEVTYPE=usb_device
+ID_VENDOR_ID=046d
+ID_MODEL_ID=c534
+ID_VENDOR=Logitech
+ID_MODEL=USB_Receiver
+ID_SERIAL_SHORT=ABC123
+MALFORMED_PROPERTY_LINE
+
+UDEV  [124.456789] remove /devices/pci0000:00/usb1/1-2 (usb)
+ACTION=remove
+DEVPATH=/devices/pci0000:00/usb1/1-2
+SUBSYSTEM=usb
+DEVTYPE=usb_device
+ID_VENDOR_ID=046d
+ID_MODEL_ID=c534
+ID_SERIAL_SHORT=ABC123

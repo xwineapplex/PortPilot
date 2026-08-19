@@ -6,6 +6,7 @@
 		<Nullable>enable</Nullable>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+		<DefaultItemExcludes>$(DefaultItemExcludes);tests/**</DefaultItemExcludes>
 
 		<Version>1.1.1</Version>
 		<Authors>xwineapplex</Authors>
@@ -49,5 +50,9 @@
 
 	<ItemGroup>
 	  <Folder Include="docs\images\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="PortPilot.Tests" />
 	</ItemGroup>
 </Project>
