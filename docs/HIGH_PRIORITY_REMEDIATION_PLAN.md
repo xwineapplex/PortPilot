@@ -292,7 +292,7 @@ Goal: Complete the medium-priority work that interacts with the high-priority fi
 - [ ] Verify normal exit, tray exit, restart, and OS-session shutdown paths.
 - [ ] Verify configuration recovery after forced termination during a save.
 - [ ] Confirm `git status --short` contains only the intended batch changes.
-- [ ] Update this document, the developer guide, and release notes with completed behavior.
+- [x] Update this document, the developer guide, and release notes with completed behavior.
 
 ## Completion Record
 
@@ -301,7 +301,7 @@ Use this section to hand work between agents.
 | Batch | Status | Commit or PR | Notes / remaining work |
 |---|---|---|---|
 | 0 | Complete | `11ff3ce` | Added a headless xUnit regression project with fixtures, fakes, and temp config support. |
-| 1 | Implemented | This commit | Automated tests pass; Linux hardware smoke tests remain. Add release notes when the next version is selected. |
+| 1 | Implemented | `fbc0938` | Automated tests pass; Linux hardware smoke tests remain. Release notes: `v1.1.2.md`. |
 | 2 | Not started | | |
 | 3 | Not started | | |
 | 4 | Not started | | |

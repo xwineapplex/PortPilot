@@ -8,7 +8,7 @@
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<DefaultItemExcludes>$(DefaultItemExcludes);tests/**</DefaultItemExcludes>
 
-		<Version>1.1.1</Version>
+		<Version>1.1.2</Version>
 		<Authors>xwineapplex</Authors>
 		<Product>PortPilot</Product>
 		<Description>A cross-platform USB and Monitor controller.</Description>
