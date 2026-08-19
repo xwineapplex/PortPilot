@@ -19,11 +19,15 @@ using PortPilot_Project.Views;
 
 namespace PortPilot_Project.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ViewModelBase, IDisposable
 {
+    private readonly object _lifecycleGate = new();
     private readonly IMonitorController _monitorController;
     private readonly IUsbWatcher _usbWatcher;
     private readonly ConfigStore _configStore;
+    private readonly Task _initializationTask;
+    private bool _watcherSubscribed;
+    private int _shutdownStarted;
 
     private AppConfig _config = new();
 
@@ -47,19 +51,31 @@ public partial class MainWindowViewModel : ViewModelBase
         get => _isMonitoringEnabled;
         set
         {
+            if (IsShuttingDown)
+                return;
+
             if (SetProperty(ref _isMonitoringEnabled, value))
             {
-                // Cancel any in-flight toggle to avoid interleaved start/stop.
-                _monitoringToggleCts?.Cancel();
-                _monitoringToggleCts?.Dispose();
-                var cts = new CancellationTokenSource();
-                _monitoringToggleCts = cts;
+                CancellationTokenSource? previousCts;
+                CancellationTokenSource cts;
+                lock (_lifecycleGate)
+                {
+                    if (IsShuttingDown)
+                        return;
+
+                    previousCts = _monitoringToggleCts;
+                    cts = new CancellationTokenSource();
+                    _monitoringToggleCts = cts;
+                }
+
+                previousCts?.Cancel();
+                previousCts?.Dispose();
 
                 _ = Dispatcher.UIThread.InvokeAsync(async () =>
                 {
-                    if (cts.Token.IsCancellationRequested)
+                    if (cts.Token.IsCancellationRequested || IsShuttingDown)
                         return;
-                    await SetMonitoringEnabledAsync(value);
+                    await SetMonitoringEnabledAsync(value, cts.Token);
                 });
             }
         }
@@ -137,7 +153,19 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     public MainWindowViewModel()
+        : this(CreateMonitorController(), CreateUsbWatcher(), new ConfigStore())
     {
+    }
+
+    internal MainWindowViewModel(
+        IMonitorController monitorController,
+        IUsbWatcher usbWatcher,
+        ConfigStore configStore)
+    {
+        _monitorController = monitorController;
+        _usbWatcher = usbWatcher;
+        _configStore = configStore;
+
         InputSourceOptions = new[]
         {
             new InputSourceOption(Resources.Enum_InputSource_DisplayPort1, 0x0F),
@@ -152,27 +180,31 @@ public partial class MainWindowViewModel : ViewModelBase
             new InputSourceOption(Resources.Enum_InputSource_NoAction, 0x00),
         }.Concat(InputSourceOptions).ToList();
 
-        if (OperatingSystem.IsWindows())
-        {
-            _monitorController = new WinMonitorController();
-            _usbWatcher = new WinUsbWatcher();
-        }
-        else if (OperatingSystem.IsLinux())
-        {
-            _monitorController = new LinuxMonitorController();
-            _usbWatcher = new LinuxUsbWatcher();
-        }
-        else
-        {
-            _monitorController = new NullMonitorController();
-            _usbWatcher = new NullUsbWatcher();
-        }
-
-        _configStore = new ConfigStore();
-
         Log("VM constructed");
-         _ = InitializeAsync();
-     }
+        _initializationTask = InitializeAsync();
+    }
+
+    internal Task InitializationTask => _initializationTask;
+
+    private bool IsShuttingDown => Volatile.Read(ref _shutdownStarted) != 0;
+
+    private static IMonitorController CreateMonitorController()
+    {
+        if (OperatingSystem.IsWindows())
+            return new WinMonitorController();
+        if (OperatingSystem.IsLinux())
+            return new LinuxMonitorController();
+        return new NullMonitorController();
+    }
+
+    private static IUsbWatcher CreateUsbWatcher()
+    {
+        if (OperatingSystem.IsWindows())
+            return new WinUsbWatcher();
+        if (OperatingSystem.IsLinux())
+            return new LinuxUsbWatcher();
+        return new NullUsbWatcher();
+    }
 
     private async Task InitializeAsync()
     {
@@ -181,46 +213,22 @@ public partial class MainWindowViewModel : ViewModelBase
         Log("InitializeAsync start");
         await LoadConfigAsync();
 
-        _usbWatcher.DeviceChanged += (_, e) =>
+        if (IsShuttingDown)
+            return;
+
+        lock (_lifecycleGate)
         {
-            // Ignore late events when monitoring is disabled.
-            if (!IsMonitoringEnabled)
+            if (IsShuttingDown)
                 return;
 
-            // Marshal to UI thread; use InvokeAsync to avoid async void.
-            _ = Dispatcher.UIThread.InvokeAsync(async () =>
-            {
-                try
-                {
-                    // Recheck after marshaling to UI thread.
-                    if (!IsMonitoringEnabled)
-                        return;
-
-                    Log($"USB {e.ChangeType} Name='{e.Device.Name}' Vid={e.Device.Vid ?? "null"} Pid={e.Device.Pid ?? "null"}");
-                    Log($"USB DeviceId='{e.Device.DeviceId}'");
-
-                    // Keep raw event list only in debug mode.
-                    if (IsDebugMode)
-                        RecentUsbEvents.Insert(0, e.Device);
-
-                    // Update targets immediately without debounce.
-                    DiffUpdateUsbTargets(e.Device);
-
-                    var deviceLabel = e.Device.Name ?? e.Device.DeviceId;
-                    Status = e.ChangeType == UsbDeviceChangeType.Added
-                        ? string.Format(CultureInfo.CurrentUICulture, Resources.Msg_DeviceConnected, deviceLabel)
-                        : string.Format(CultureInfo.CurrentUICulture, Resources.Msg_DeviceDisconnected, deviceLabel);
-
-                    await ApplyRulesAsync(e.ChangeType, e.Device);
-                }
-                catch (Exception ex)
-                {
-                    Log($"USB event handler failed: {ex}");
-                }
-            });
-        };
+            _usbWatcher.DeviceChanged += OnUsbDeviceChanged;
+            _watcherSubscribed = true;
+        }
 
         await RefreshMonitorsAsync();
+
+        if (IsShuttingDown)
+            return;
 
         // Ensure usable defaults before creating any rules.
         if (SelectedMonitor is null && Monitors.Count > 0)
@@ -252,14 +260,54 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private async Task SetMonitoringEnabledAsync(bool enabled)
+    private void OnUsbDeviceChanged(object? sender, UsbDeviceChangedEventArgs e)
     {
+        if (!IsMonitoringEnabled || IsShuttingDown)
+            return;
+
+        _ = Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            try
+            {
+                if (!IsMonitoringEnabled || IsShuttingDown)
+                    return;
+
+                Log($"USB {e.ChangeType} Name='{e.Device.Name}' Vid={e.Device.Vid ?? "null"} Pid={e.Device.Pid ?? "null"}");
+                Log($"USB DeviceId='{e.Device.DeviceId}'");
+
+                if (IsDebugMode)
+                    RecentUsbEvents.Insert(0, e.Device);
+
+                DiffUpdateUsbTargets(e.Device);
+
+                var deviceLabel = e.Device.Name ?? e.Device.DeviceId;
+                Status = e.ChangeType == UsbDeviceChangeType.Added
+                    ? string.Format(CultureInfo.CurrentUICulture, Resources.Msg_DeviceConnected, deviceLabel)
+                    : string.Format(CultureInfo.CurrentUICulture, Resources.Msg_DeviceDisconnected, deviceLabel);
+
+                await ApplyRulesAsync(e.ChangeType, e.Device);
+            }
+            catch (Exception ex)
+            {
+                Log($"USB event handler failed: {ex}");
+            }
+        });
+    }
+
+    private async Task SetMonitoringEnabledAsync(bool enabled, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested || IsShuttingDown)
+            return;
+
         if (enabled)
         {
             try
             {
                 // Restart watcher cleanly.
                 _usbWatcher.Stop();
+
+                if (cancellationToken.IsCancellationRequested || IsShuttingDown)
+                    return;
 
                 // Reset history and repopulate from a single scan for UI correction.
                 _recentUsbForTargets.Clear();
@@ -283,12 +331,26 @@ public partial class MainWindowViewModel : ViewModelBase
                     Log($"Enable scan failed: {ex}");
                 }
 
-                _usbWatcher.Start();
+                cancellationToken.ThrowIfCancellationRequested();
+                lock (_lifecycleGate)
+                {
+                    if (IsShuttingDown)
+                        return;
+
+                    _usbWatcher.Start();
+                }
                 Status = Resources.Msg_Status_MonitoringStarted;
                 Log("USB watcher started (enabled)");
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
             catch (Exception ex)
             {
+                if (IsShuttingDown)
+                    return;
+
                 Status = string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_Prefix, ex.Message);
                 Log($"USB watcher start failed: {ex}");
 
@@ -313,8 +375,11 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
 
-        // Persist immediately and keep Status as service state.
-        _config.MonitoringEnabled = enabled;
+        if (cancellationToken.IsCancellationRequested || IsShuttingDown)
+            return;
+
+        // Persist the final watcher state and keep Status as the service state.
+        _config.MonitoringEnabled = IsMonitoringEnabled;
         await SaveConfigAsync(updateStatus: false);
     }
 
@@ -548,6 +613,10 @@ public partial class MainWindowViewModel : ViewModelBase
              Status = Resources.Msg_Status_RefreshingMonitors;
              Monitors.Clear();
              var monitors = await _monitorController.GetMonitorsAsync();
+
+             if (IsShuttingDown)
+                 return;
+
              foreach (var m in monitors)
                  Monitors.Add(m);
              SelectedMonitor ??= Monitors.Count > 0 ? Monitors[0] : null;
@@ -806,6 +875,49 @@ public partial class MainWindowViewModel : ViewModelBase
         await SaveConfigAsync(updateStatus: false);
         if (TrayAccess.ExitApplication is { } exit)
             exit();
+    }
+
+    /// <summary>
+    /// Stop initialization and release the owned USB watcher.
+    /// </summary>
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _shutdownStarted, 1) != 0)
+            return;
+
+        CancellationTokenSource? monitoringToggleCts;
+        lock (_lifecycleGate)
+        {
+            monitoringToggleCts = _monitoringToggleCts;
+            _monitoringToggleCts = null;
+
+            if (_watcherSubscribed)
+            {
+                _usbWatcher.DeviceChanged -= OnUsbDeviceChanged;
+                _watcherSubscribed = false;
+            }
+        }
+
+        monitoringToggleCts?.Cancel();
+        monitoringToggleCts?.Dispose();
+
+        try
+        {
+            _usbWatcher.Stop();
+        }
+        catch
+        {
+            // Continue disposal when stopping an already-failed watcher throws.
+        }
+
+        try
+        {
+            _usbWatcher.Dispose();
+        }
+        catch
+        {
+            // Keep application shutdown deterministic when watcher disposal fails.
+        }
     }
 
     public static class TrayAccess

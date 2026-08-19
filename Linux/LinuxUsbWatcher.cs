@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PortPilot_Project.Abstractions;
@@ -11,92 +13,124 @@ namespace PortPilot_Project.Linux;
 
 public sealed class LinuxUsbWatcher : IUsbWatcher
 {
-    private Process? _process;
+    private readonly object _lifecycleGate = new();
+    private readonly Func<IUdevMonitorProcess> _startProcess;
+    private readonly bool _isSupported;
+    private IUdevMonitorProcess? _process;
     private CancellationTokenSource? _cts;
     private Task? _readTask;
+    private Task? _stderrTask;
     private readonly Dictionary<string, UsbDeviceInfo> _knownDevices = new();
+    private bool _disposed;
+
+    public LinuxUsbWatcher()
+        : this(UdevMonitorProcess.Start, OperatingSystem.IsLinux())
+    {
+    }
+
+    internal LinuxUsbWatcher(Func<IUdevMonitorProcess> startProcess, bool isSupported)
+    {
+        _startProcess = startProcess;
+        _isSupported = isSupported;
+    }
+
+    internal Task ReadCompletion => _readTask ?? Task.CompletedTask;
 
     public event EventHandler<UsbDeviceChangedEventArgs>? DeviceChanged;
 
     public void Start()
     {
-        if (_process != null)
-            return;
-
-        if (!OperatingSystem.IsLinux())
-            return;
-
-        _cts = new CancellationTokenSource();
-        
-        var startInfo = new ProcessStartInfo
+        lock (_lifecycleGate)
         {
-            FileName = "udevadm",
-            Arguments = "monitor --udev --subsystem-match=usb --property",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+            if (_disposed || _process is not null || !_isSupported)
+                return;
 
-        _process = new Process { StartInfo = startInfo };
-        _process.Start();
+            var cts = new CancellationTokenSource();
+            IUdevMonitorProcess? process = null;
+            try
+            {
+                process = _startProcess();
+                var readTask = Task.Run(() => ReadLoopAsync(process, cts.Token));
+                var stderrTask = Task.Run(() => DrainStandardErrorAsync(process.StandardError, cts.Token));
 
-        _readTask = Task.Run(() => ReadLoop(_cts.Token));
+                _process = process;
+                _cts = cts;
+                _readTask = readTask;
+                _stderrTask = stderrTask;
+            }
+            catch
+            {
+                cts.Cancel();
+                cts.Dispose();
+                process?.Dispose();
+                throw;
+            }
+        }
     }
 
-    private async Task ReadLoop(CancellationToken token)
+    private async Task ReadLoopAsync(IUdevMonitorProcess process, CancellationToken token)
     {
-        if (_process == null) return;
+        var parser = new LinuxUsbEventParser();
 
         try
         {
-            string? line;
-            var currentEvent = new Dictionary<string, string>();
-            bool inEvent = false;
-
-            while ((line = await _process.StandardOutput.ReadLineAsync(token)) != null)
+            while (await process.StandardOutput.ReadLineAsync(token) is { } line)
             {
-                if (token.IsCancellationRequested) break;
-
-                line = line.Trim();
-                if (string.IsNullOrEmpty(line)) continue;
-
-                // Detect header lines starting with UDEV or KERNEL.
-                if (line.StartsWith("UDEV") || line.StartsWith("KERNEL"))
-                {
-                    // Process previous event when present.
-                    if (inEvent)
-                    {
-                        ProcessEvent(currentEvent);
-                    }
-
-                    // Start new event.
-                    currentEvent.Clear();
-                    inEvent = true;
-                    continue;
-                }
-
-                if (inEvent)
-                {
-                    var parts = line.Split('=', 2);
-                    if (parts.Length == 2)
-                    {
-                        currentEvent[parts[0]] = parts[1];
-                    }
-                }
+                token.ThrowIfCancellationRequested();
+                ProcessParsedEvent(parser.ReadLine(line));
             }
+
+            if (!token.IsCancellationRequested)
+                ProcessParsedEvent(parser.Complete());
         }
         catch (OperationCanceledException)
         {
-            // Ignore cancellation.
+            // Treat cancellation as the expected watcher shutdown path.
+        }
+        catch (ObjectDisposedException) when (token.IsCancellationRequested)
+        {
+            // Treat stream disposal during shutdown as expected.
         }
         catch (Exception ex)
         {
-            Console.WriteLine(string.Format(CultureInfo.CurrentUICulture, Resources.Msg_Error_LinuxUsbWatcher, ex.Message));
+            Console.WriteLine(string.Format(
+                CultureInfo.CurrentUICulture,
+                Resources.Msg_Error_LinuxUsbWatcher,
+                ex.Message));
         }
     }
 
-    private void ProcessEvent(Dictionary<string, string> properties)
+    private static async Task DrainStandardErrorAsync(TextReader standardError, CancellationToken token)
+    {
+        try
+        {
+            while (await standardError.ReadLineAsync(token) is not null)
+                token.ThrowIfCancellationRequested();
+        }
+        catch (OperationCanceledException)
+        {
+            // Treat cancellation as the expected watcher shutdown path.
+        }
+        catch (ObjectDisposedException) when (token.IsCancellationRequested)
+        {
+            // Treat stream disposal during shutdown as expected.
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(string.Format(
+                CultureInfo.CurrentUICulture,
+                Resources.Msg_Error_LinuxUsbWatcher,
+                ex.Message));
+        }
+    }
+
+    private void ProcessParsedEvent(IReadOnlyDictionary<string, string>? properties)
+    {
+        if (properties is not null)
+            ProcessEvent(properties);
+    }
+
+    private void ProcessEvent(IReadOnlyDictionary<string, string> properties)
     {
         if (!properties.TryGetValue("ACTION", out var action)) return;
         if (!properties.TryGetValue("DEVPATH", out var devPath)) return;
@@ -116,9 +150,9 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
             if (!string.IsNullOrEmpty(vendor)) name = $"{vendor} {name}";
 
             var serial = properties.TryGetValue("ID_SERIAL_SHORT", out var s) ? s : devPath;
-            var deviceId = $"USB\\VID_{vid.ToUpper()}&PID_{pid.ToUpper()}\\{serial}";
+            var deviceId = $"USB\\VID_{vid.ToUpperInvariant()}&PID_{pid.ToUpperInvariant()}\\{serial}";
 
-            var info = new UsbDeviceInfo(deviceId, name, vid.ToUpper(), pid.ToUpper());
+            var info = new UsbDeviceInfo(deviceId, name, vid.ToUpperInvariant(), pid.ToUpperInvariant());
             
             lock (_knownDevices)
             {
@@ -146,8 +180,8 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
                         properties.TryGetValue("ID_MODEL_ID", out var pid))
                     {
                         var serial = properties.TryGetValue("ID_SERIAL_SHORT", out var s) ? s : null;
-                        var vidUpper = vid.ToUpper();
-                        var pidUpper = pid.ToUpper();
+                        var vidUpper = vid.ToUpperInvariant();
+                        var pidUpper = pid.ToUpperInvariant();
 
                         // Find matching device in known devices.
                         foreach (var kvp in _knownDevices)
@@ -269,9 +303,9 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
                 if (properties.TryGetValue("DEVPATH", out var dp)) devPath = dp;
 
                 var serial = properties.TryGetValue("ID_SERIAL_SHORT", out var s) ? s : devPath;
-                var deviceId = $"USB\\VID_{vid.ToUpper()}&PID_{pid.ToUpper()}\\{serial}";
+                var deviceId = $"USB\\VID_{vid.ToUpperInvariant()}&PID_{pid.ToUpperInvariant()}\\{serial}";
 
-                var info = new UsbDeviceInfo(deviceId, name, vid.ToUpper(), pid.ToUpper());
+                var info = new UsbDeviceInfo(deviceId, name, vid.ToUpperInvariant(), pid.ToUpperInvariant());
 
                 lock (_knownDevices)
                 {
@@ -292,33 +326,64 @@ public sealed class LinuxUsbWatcher : IUsbWatcher
 
     public void Stop()
     {
-        _cts?.Cancel();
+        IUdevMonitorProcess? process;
+        CancellationTokenSource? cts;
+        Task? readTask;
+        Task? stderrTask;
 
-        if (_process != null && !_process.HasExited)
+        lock (_lifecycleGate)
+        {
+            process = _process;
+            cts = _cts;
+            readTask = _readTask;
+            stderrTask = _stderrTask;
+
+            _process = null;
+            _cts = null;
+            _readTask = null;
+            _stderrTask = null;
+        }
+
+        cts?.Cancel();
+
+        if (process is not null)
         {
             try
             {
-                _process.Kill();
+                if (!process.HasExited)
+                    process.Kill(entireProcessTree: true);
             }
-            catch { }
+            catch
+            {
+                // Continue cleanup when the process exits between checks.
+            }
+
+            try { process.WaitForExit(TimeSpan.FromSeconds(2)); } catch { }
         }
 
-        // Wait briefly for the read loop to finish.
-        if (_readTask is not null)
+        var tasks = new[] { readTask, stderrTask }.Where(task => task is not null).Cast<Task>().ToArray();
+        if (tasks.Length > 0)
         {
-            try { _readTask.Wait(TimeSpan.FromSeconds(2)); } catch { }
-            _readTask = null;
+            try { Task.WaitAll(tasks, TimeSpan.FromSeconds(2)); } catch { }
         }
 
-        _process?.Dispose();
-        _process = null;
+        process?.Dispose();
+        cts?.Dispose();
 
-        _cts?.Dispose();
-        _cts = null;
+        lock (_knownDevices)
+            _knownDevices.Clear();
     }
 
     public void Dispose()
     {
+        lock (_lifecycleGate)
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+        }
+
         Stop();
     }
 }

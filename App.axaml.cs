@@ -87,7 +87,13 @@ namespace PortPilot_Project
                 _tray = new AvaloniaTrayController(() => vm);
                 _tray.Initialize();
 
-                desktop.Exit += (_, __) => _tray?.Dispose();
+                desktop.Exit += (_, __) =>
+                {
+                    vm.Dispose();
+                    _tray?.Dispose();
+                    MainWindowViewModel.TrayAccess.ShowWindow = null;
+                    MainWindowViewModel.TrayAccess.ExitApplication = null;
+                };
             }
 
             base.OnFrameworkInitializationCompleted();

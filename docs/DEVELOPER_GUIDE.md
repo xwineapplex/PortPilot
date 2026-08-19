@@ -21,7 +21,7 @@ PortPilot-Project/
 ├── App.axaml
 ├── App.axaml.cs
 ├── Assets/
-│   └── avalonia-logo.ico
+│   └── PortPilot.ico
 ├── Abstractions/
 │   ├── IMonitorController.cs
 │   ├── IUsbWatcher.cs
@@ -55,30 +55,51 @@ PortPilot-Project/
 ├── Windows/
 │   ├── WinMonitorController.cs
 │   └── WinUsbWatcher.cs
-└── Linux/
-   ├── LinuxMonitorController.cs
-   └── LinuxUsbWatcher.cs
+├── Linux/
+│   ├── LinuxMonitorController.cs
+│   ├── LinuxUsbEventParser.cs
+│   ├── LinuxUsbWatcher.cs
+│   └── UdevMonitorProcess.cs
+├── docs/
+│   ├── COMMENT_STYLE_GUIDE.md
+│   ├── HIGH_PRIORITY_REMEDIATION_PLAN.md
+│   ├── NAMING_CONVENTION.md
+│   └── RELEASE_PROCESS.md
+└── tests/
+    └── PortPilot.Tests/
+        ├── Fixtures/
+        ├── Support/
+        ├── TestDoubles/
+        └── PortPilot.Tests.csproj
 ```
 
 Key areas:
+
 - Abstractions: shared interfaces for monitors, USB watchers, and tray control
 - Config: config models and persistence
 - Properties: resource files and generated wrappers for localization
 - ViewModels / Views: UI logic and Avalonia XAML views
 - Windows / Linux: platform-specific USB watcher and monitor control
+- tests/PortPilot.Tests: headless regression tests, fixtures, and test doubles
 
 ## Platform Implementations
 
 ### Windows
+
 - WinUsbWatcher: watches USB events through WMI
 - WinMonitorController: controls monitor input via dxva2.dll (DDC/CI)
 
 ### Linux
-- LinuxUsbWatcher: watches USB events through udevadm
+
+- LinuxUsbEventParser: parses complete udevadm event blocks at blank lines, headers, and EOF
+- LinuxUsbWatcher: owns the udevadm process and delivers filtered USB device events
+- UdevMonitorProcess: adapts process startup, stream draining, termination, and cleanup
 - LinuxMonitorController: controls monitor input via ddcutil (DDC/CI)
 
 ### Shared Logic
+
 - MainWindowViewModel: orchestrates UI state, rule management, and service state
+- App: owns and disposes the main view model before desktop lifetime teardown
 
 ## I18N Development
 
@@ -101,7 +122,7 @@ Key areas:
    - XAML: {x:Static p:Resources.<Key>}
    - C#: Resources.<Key> (use string.Format for parameters)
 
-Key naming rules: see [docs/NAMING_CONVENTION.md](docs/NAMING_CONVENTION.md).
+Key naming rules: see [NAMING_CONVENTION.md](NAMING_CONVENTION.md).
 
 ## Build & Run
 
@@ -113,9 +134,30 @@ Primary packages:
 - System.Management 10.0.11
 
 Typical commands:
-- dotnet restore
-- dotnet build
-- dotnet run
+
+```bash
+dotnet restore
+dotnet build --no-restore
+dotnet test --no-restore
+dotnet run --no-build
+```
+
+## Automated Tests
+
+The `tests/PortPilot.Tests` project uses xUnit and runs without an Avalonia display
+server, physical USB devices, monitors, WMI, `udevadm`, or `ddcutil`.
+
+The regression suite currently covers:
+
+- udevadm event parsing at blank lines, new headers, and EOF
+- malformed and incomplete event handling
+- Linux watcher start, stop, restart, process failure, and device filtering
+- application shutdown racing with asynchronous initialization
+- temporary configuration persistence used by later remediation batches
+
+Use fixtures under `tests/PortPilot.Tests/Fixtures` for representative process output.
+Use test doubles under `tests/PortPilot.Tests/TestDoubles` instead of accessing platform
+services or hardware.
 
 ## Debugging & Logging
 
@@ -131,8 +173,13 @@ workflow creates a draft GitHub Release for review.
 Follow [RELEASE_PROCESS.md](RELEASE_PROCESS.md) to update the version, prepare
 AI-assisted release notes, validate the build, and publish a release safely.
 
+## Maintenance Plans
+
+- Follow [HIGH_PRIORITY_REMEDIATION_PLAN.md](HIGH_PRIORITY_REMEDIATION_PLAN.md) for the staged
+  reliability, lifecycle, configuration, and monitor-identity remediation work.
+
 ## Norms & Policies
 
-- [.github/copilot-instructions.md](.github/copilot-instructions.md)
-- [docs/COMMENT_STYLE_GUIDE.md](docs/COMMENT_STYLE_GUIDE.md)
-- [docs/NAMING_CONVENTION.md](docs/NAMING_CONVENTION.md)
+- [Copilot instructions](../.github/copilot-instructions.md)
+- [Comment style guide](COMMENT_STYLE_GUIDE.md)
+- [I18N naming conventions](NAMING_CONVENTION.md)
